@@ -12,6 +12,7 @@
     <modules>
         <module>last-api</module>
         <module>last-bedwars</module>
+        <module>last-auth</module>
     </modules>
 
     <properties>

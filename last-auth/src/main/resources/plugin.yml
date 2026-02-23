@@ -1,0 +1,13 @@
+name: LastAuth
+version: 1.0
+main: net.jetluna.auth.AuthPlugin
+api-version: 1.21
+depend: [LastApi] # Указываем, что нам нужен API
+
+commands:
+  reg:
+    description: Регистрация
+    aliases: [register]
+  l:
+    description: Вход
+    aliases: [login]
