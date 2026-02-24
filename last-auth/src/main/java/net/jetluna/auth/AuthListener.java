@@ -40,16 +40,21 @@ public class AuthListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        event.joinMessage(null);
         Player player = event.getPlayer();
 
-        // Телепортация на спавн при входе
-        teleportToSpawn(player);
+        // ... проверки ...
 
-        // Выдаем предметы
+        // Отправляем приветствие из конфига
+        // Так как там список строк, можно сделать цикл или добавить метод sendListMessage в LanguageManager
+        // Для простоты пока отправим первую строку или переделаем конфиг на одну строку
+        // Но лучше всего добавить поддержку списков сообщений.
+
+        // Вариант (если в конфиге список):
+        for (String line : net.jetluna.api.lang.LanguageManager.getList(player, "auth.messages.join")) {
+            net.jetluna.api.util.ChatUtil.sendMessage(player, line);
+        }
+
         AuthItems.giveAuthItems(player);
-
-        ChatUtil.sendMessage(player, "<yellow>Используйте компас для входа!");
     }
 
     @EventHandler

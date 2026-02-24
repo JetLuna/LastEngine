@@ -1,4 +1,14 @@
 name: LastApi
-version: 1.0
+version: 1.0.0
 main: net.jetluna.api.LastApi
 api-version: 1.21
+
+# ВОТ ЭТОГО НЕ ХВАТАЛО:
+commands:
+  lang:
+    description: Сменить язык
+    usage: /lang <ru/en/ua>
+  setrank:
+    description: Выдать ранг игроку
+    permission: last.admin
+    usage: /setrank <ник> <ранг>

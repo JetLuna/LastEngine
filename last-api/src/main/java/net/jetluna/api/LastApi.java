@@ -1,6 +1,7 @@
 package net.jetluna.api;
 
 import net.jetluna.api.database.DatabaseManager;
+import net.jetluna.api.rank.RankCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class LastApi extends JavaPlugin {
@@ -13,19 +14,31 @@ public class LastApi extends JavaPlugin {
         instance = this;
         getLogger().info("LastApi (Core Library) запускается...");
 
-        // Подключение к базе данных
-        // ВАЖНО: Убедись, что у тебя запущен MySQL (XAMPP/OpenServer)
-        // И создана база данных с именем 'lastengine'
+        // 1. Загружаем языки
+        net.jetluna.api.lang.LanguageManager.load();
+
+        // 2. Регистрируем команды
+        getCommand("lang").setExecutor(new net.jetluna.api.lang.LangCommand());
+
+        // 1. Создаем папку плагина
+        if (!getDataFolder().exists()) getDataFolder().mkdir();
+
+        // 2. Подключение к базе данных (MySQL)
+        // Если у тебя пока нет MySQL, можешь закомментировать этот блок try-catch
         try {
-            // Параметры: хост, порт, имя_базы, юзер, пароль
-            // Если у тебя XAMPP, пароль обычно пустой ("")
             this.databaseManager = new DatabaseManager("localhost", "3306", "lastengine", "root", "");
             getLogger().info("База данных успешно подключена!");
         } catch (Exception e) {
-            getLogger().severe("КРИТИЧЕСКАЯ ОШИБКА: Не удалось подключиться к БД!");
-            getLogger().severe("Проверь, запущен ли MySQL и создана ли база 'lastengine'.");
-            e.printStackTrace();
+            getLogger().warning("Не удалось подключиться к БД (MySQL). Если это тест - игнорируй.");
         }
+
+        // 3. Регистрируем команду выдачи рангов
+        // (Проверка на null не обязательна, если команда есть в plugin.yml, но для безопасности оставим)
+        if (getCommand("setrank") != null) {
+            getCommand("setrank").setExecutor(new RankCommand());
+        }
+
+        getLogger().info("LastApi успешно запущен!");
     }
 
     @Override
@@ -36,13 +49,12 @@ public class LastApi extends JavaPlugin {
         }
     }
 
-    // Этот метод нужен, чтобы другие плагины получали доступ к API
+    // --- Геттеры для других плагинов ---
+
     public static LastApi getInstance() {
         return instance;
     }
 
-    // А ЭТОТ МЕТОД нужен, чтобы AuthCommand мог работать с базой
-    // (Именно его не хватало, из-за чего горело красным)
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
     }

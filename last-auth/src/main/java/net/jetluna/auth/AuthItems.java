@@ -1,5 +1,6 @@
 package net.jetluna.auth;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.HeadUtil;
 import net.jetluna.api.util.ItemBuilder;
@@ -11,48 +12,50 @@ import org.bukkit.inventory.ItemStack;
 
 public class AuthItems {
 
-    // Текстуры (можно найти на minecraft-heads.com)
-    private static final String TEXTURE_ARROW = "f2f3a2dfce0c3dab7ee10db385e5229f1a39534a8ba2646178e37c4fa93b";
-    private static final String TEXTURE_EMAIL = "d6aaef0120af71ba3b83fbddabc334bc63f2311599698a318243be69f0607da3";
-    private static final String TEXTURE_TELEGRAM = "d3d25d55caedfd70ee7f3a806af0025f153d4bf34f41e6efd44ec8fe74198f35";
+    // Текстуры для голов
+    private static final String TEXTURE_TELEGRAM = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTY4YWExM2FiODg1NzJmYTE1ZDNkZTU5YmM1ZTY2NTE5ZThhMzEwMGI1ZTY5MDY2NGE0NmQ1M2UyY2Y5MyJ9fX0=";
+    private static final String TEXTURE_EMAIL = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2Q2YmY5MzY1LED1M2Y5ZTRiYjY2MGQ4ODFjYTcxM2M5YmFjN2Y2ODc2NzdhYjQxMjM1ODMyMGQ0NzM5cCJ9fX0=";
+    private static final String TEXTURE_ARROW = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM3Y3ZTRlY2E1YzU0N2MzM2Q1ZGI4MWQ1YjM4OTg5OTQzYjVlN2E4Mzc0YTNhRU1MTYwYjUzNTY3YjIifX19";
 
-    // Предметы для инвентаря
+    // Выдача предметов при входе
     public static void giveAuthItems(Player player) {
         player.getInventory().clear();
 
-        // 1. Компас (Авторизация) - для всех
-        ItemStack compass = new ItemBuilder(Material.COMPASS)
-                .name("<green><bold>Авторизация")
-                .lore("<gray>Нажми ПКМ, чтобы войти")
+        // Компас (выбор метода)
+        ItemStack selector = new ItemBuilder(Material.COMPASS)
+                .setName(LanguageManager.getString(player, "auth.items.selector.name"))
+                .setLore(LanguageManager.getList(player, "auth.items.selector.lore"))
                 .build();
-        player.getInventory().setItem(4, compass); // В центр слота
 
-        // 2. Стрелка (Только для лицензии)
-        // ВАЖНО: Проверка на лицензию в offline-mode сервере сложная.
-        // Пока сделаем заглушку: даем, если у игрока красивый UUID (версия 4) или просто всем для теста.
-        boolean isPremium = true; // Тут будет твоя логика проверки
+        player.getInventory().setItem(4, selector);
 
+        // Стрелка (быстрый вход, если нужно)
+        boolean isPremium = true;
         if (isPremium) {
             ItemStack skipAuth = new ItemBuilder(HeadUtil.getHead(TEXTURE_ARROW))
-                    .name("<gold><bold>Быстрый Вход")
-                    .lore("<gray>Лицензионный аккаунт обнаружен!", "<yellow>Нажми ПКМ для входа")
+                    .setName("<gold><bold>Быстрый Вход")
+                    .setLore("<gray>Лицензия обнаружена!", "", "<yellow>▶ Нажми для входа")
                     .build();
+
             player.getInventory().setItem(8, skipAuth);
         }
     }
 
-    // Меню выбора (ТГ или Почта)
+    // --- ВОТ ЭТОГО МЕТОДА НЕ ХВАТАЛО ---
     public static void openAuthGui(Player player) {
-        Inventory gui = Bukkit.createInventory(null, 27, ChatUtil.parse("<black>Выберите способ входа"));
+        String title = LanguageManager.getString(player, "auth.gui.title");
+        Inventory gui = Bukkit.createInventory(null, 27, ChatUtil.parse(title));
 
-        ItemStack telegram = new ItemBuilder(HeadUtil.getHead(TEXTURE_TELEGRAM)) // Замени текстуру на синюю голову
-                .name("<aqua><bold>Telegram")
-                .lore("<gray>Получить код через бота", "", "<yellow>Нажми для выбора")
+        // Telegram
+        ItemStack telegram = new ItemBuilder(HeadUtil.getHead(TEXTURE_TELEGRAM))
+                .setName(LanguageManager.getString(player, "auth.gui.telegram.name"))
+                .setLore(LanguageManager.getList(player, "auth.gui.telegram.lore"))
                 .build();
 
+        // Email
         ItemStack email = new ItemBuilder(HeadUtil.getHead(TEXTURE_EMAIL))
-                .name("<gold><bold>Email")
-                .lore("<gray>Получить код на почту", "", "<yellow>Нажми для выбора")
+                .setName(LanguageManager.getString(player, "auth.gui.email.name"))
+                .setLore(LanguageManager.getList(player, "auth.gui.email.lore"))
                 .build();
 
         gui.setItem(11, telegram);

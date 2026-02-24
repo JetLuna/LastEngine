@@ -1,15 +1,10 @@
 package net.jetluna.api.util;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ItemBuilder {
@@ -17,50 +12,58 @@ public class ItemBuilder {
     private final ItemStack item;
     private final ItemMeta meta;
 
+    // Конструктор для Материала (Кровать, Компас...)
     public ItemBuilder(Material material) {
         this.item = new ItemStack(material);
         this.meta = item.getItemMeta();
     }
 
+    // !!! ВОТ ЭТОГО НЕ ХВАТАЛО !!!
+    // Конструктор для готового предмета (Голова игрока и т.д.)
     public ItemBuilder(ItemStack item) {
-        this.item = item.clone();
-        this.meta = this.item.getItemMeta();
+        this.item = item;
+        this.meta = item.getItemMeta();
     }
+    
 
-    // Установка имени с поддержкой цветов MiniMessage
-    // Пример: .name("<red>Меч <bold>Зевса")
-    public ItemBuilder name(String name) {
-        meta.displayName(ChatUtil.parse(name)
-                .decoration(TextDecoration.ITALIC, false)); // Убираем курсив
+    // --- НАЗВАНИЕ ---
+    public ItemBuilder setName(String text) {
+        if (meta != null) meta.displayName(ChatUtil.parse(text));
         return this;
     }
 
-    public ItemBuilder lore(String... lines) {
-        List<Component> lore = new ArrayList<>();
-        for (String line : lines) {
-            lore.add(ChatUtil.parse(line).decoration(TextDecoration.ITALIC, false));
+    // Для совместимости
+    public ItemBuilder name(String text) {
+        return setName(text);
+    }
+
+    // --- ОПИСАНИЕ ---
+    // Для конфига (List)
+    public ItemBuilder setLore(List<String> lines) {
+        if (meta != null && lines != null) {
+            List<Component> components = new ArrayList<>();
+            for (String line : lines) {
+                components.add(ChatUtil.parse(line));
+            }
+            meta.lore(components);
         }
-        meta.lore(lore);
         return this;
     }
 
-    public ItemBuilder amount(int amount) {
-        item.setAmount(amount);
-        return this;
+    // Для кода (String...)
+    public ItemBuilder setLore(String... lines) {
+        return lore(lines);
     }
 
-    public ItemBuilder enchant(Enchantment enchant, int level) {
-        meta.addEnchant(enchant, level, true);
-        return this;
-    }
-
-    public ItemBuilder flags(ItemFlag... flags) {
-        meta.addItemFlags(flags);
-        return this;
-    }
-
-    public ItemBuilder unbreakable() {
-        meta.setUnbreakable(true);
+    // Для совместимости
+    public ItemBuilder lore(String... lines) {
+        if (meta != null) {
+            List<Component> components = new ArrayList<>();
+            for (String line : lines) {
+                components.add(ChatUtil.parse(line));
+            }
+            meta.lore(components);
+        }
         return this;
     }
 

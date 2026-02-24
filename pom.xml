@@ -11,8 +11,9 @@
 
     <modules>
         <module>last-api</module>
-        <module>last-bedwars</module>
         <module>last-auth</module>
+        <module>last-bedwars</module>
+        <module>last-lobby</module>
     </modules>
 
     <properties>
@@ -34,6 +35,12 @@
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>1.21.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

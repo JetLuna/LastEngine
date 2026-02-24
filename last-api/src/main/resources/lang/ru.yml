@@ -1,0 +1,99 @@
+prefix:
+  server: "<gradient:aqua:blue>LastEngine <dark_gray>»"
+  error: "<red>Ошибка <dark_gray>»"
+
+general:
+  no_permission: "%prefix_error% <red>У вас нет прав!"
+  lang_changed: "%prefix_server% <green>Язык изменен на Русский!"
+  player_only: "%prefix_error% <red>Только для игроков."
+  player_not_found: "%prefix_error% <red>Игрок не найден."
+
+lobby:
+  board:
+    title: "<gradient:gold:yellow><bold>LAST ENGINE"
+    nickname: "<gray>Никнейм:"
+    rank: "<gray>Ранг:"
+    online: "<blue><bold>Онлайн:"
+    footer: "<yellow>play.lastengine.net"
+  tab:
+    header: "\n<gradient:aqua:blue><bold>LAST ENGINE NETWORK</bold></gradient>\n<gray>Добро пожаловать, %player%!\n"
+    footer: "\n<gray>Онлайн: <green>%online%\n\n<yellow>Сайт: <white>www.lastengine.net\n"
+
+  items:
+    navigator:
+      name: "<green><bold>Выбор режима"
+      lore:
+        - "<gray>Нажми ПКМ,"
+        - "<gray>чтобы открыть меню!"
+
+    profile:
+      name: "<yellow><bold>Профиль"
+      lore:
+        - "<gray>Статистика и настройки"
+        - ""
+        - "<yellow>▶ Нажми, чтобы открыть"
+
+    visibility:
+      enabled:
+        name: "<green><bold>Игроки: ВИДНЫ"
+        lore:
+          - "<gray>Нажми ПКМ, чтобы"
+          - "<red>скрыть <gray>всех игроков."
+      disabled:
+        name: "<red><bold>Игроки: СКРЫТЫ"
+        lore:
+          - "<gray>Нажми ПКМ, чтобы"
+          - "<green>показать <gray>всех игроков."
+
+  inventory:
+    title: "<black>Меню Сервера"
+    bedwars:
+      name: "<red><bold>BedWars"
+      lore:
+        - "<gray>Классический режим."
+        - ""
+        - "<yellow>▶ Нажми, чтобы играть!"
+
+  messages:
+    spawn_set: "%prefix_server% <green>Точка спавна установлена!"
+    teleport: "%prefix_server% <gray>Телепортация..."
+    visibility_hide: "<red>Все игроки скрыты!"
+    visibility_show: "<green>Все игроки теперь видны!"
+
+auth:
+  messages:
+    join:
+      - "%prefix_server% <gray>Добро пожаловать!"
+      - "<gray>Для игры необходимо авторизоваться."
+      - "<yellow>Используйте Компас для выбора способа входа."
+    code_sent: "%prefix_server% <green>Код подтверждения отправлен в %method%!"
+    enter_code: "%prefix_server% <yellow>Введите код в чат или напишите: <gold>/code <12345>"
+    success: "%prefix_server% <green>Вы успешно вошли!"
+    wrong_code: "%prefix_error% <red>Неверный код! Попробуйте еще раз."
+    timeout: "%prefix_error% <red>Время действия кода истекло."
+    already: "%prefix_error% <red>Вы уже авторизованы."
+
+  items:
+    selector:
+      name: "<green><bold>Меню Авторизации"
+      lore:
+        - "<gray>Нажми ПКМ,"
+        - "<gray>чтобы выбрать метод входа"
+        - "<gray>(Telegram или Почта)"
+
+  gui:
+    title: "<black>Выберите способ входа"
+    telegram:
+      name: "<blue><bold>Telegram"
+      lore:
+        - "<gray>Самый быстрый способ."
+        - "<gray>Бот пришлет код в ЛС."
+        - ""
+        - "<yellow>▶ Нажми для выбора"
+    email:
+      name: "<gold><bold>Email (Почта)"
+      lore:
+        - "<gray>Код придет на почту."
+        - "<gray>Безопасно и надежно."
+        - ""
+        - "<yellow>▶ Нажми для выбора"

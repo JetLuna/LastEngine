@@ -1,0 +1,15 @@
+name: LastLobby
+version: 1.0.0
+main: net.jetluna.lobby.LobbyPlugin
+api-version: 1.21
+depend: [LastApi]          # <--- ВОТ ЭТОЙ СТРОКИ НЕ ХВАТАЕТ!
+commands:
+  lobby:
+    description: Вернуться в лобби
+    aliases: [hub, l]
+  setlobbyspawn:
+    description: Установить точку спавна лобби
+    permission: last.admin
+  setrank:
+    description: Выдать ранг
+    permission: last.admin
