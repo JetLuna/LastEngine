@@ -1,5 +1,6 @@
 package net.jetluna.auth;
 
+import net.jetluna.auth.manager.CodeManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class AuthPlugin extends JavaPlugin {
@@ -8,21 +9,26 @@ public class AuthPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // 1. Создаем менеджера
         this.authManager = new AuthManager();
 
-        // 2. Регистрируем события (защита от движения)
-        getServer().getPluginManager().registerEvents(new AuthListener(authManager), this);
+        getServer().getPluginManager().registerEvents(new AuthListener(this, authManager), this);
 
-        // 3. Регистрируем команды /reg и /l
-        // ВАЖНО: Убедись, что AuthCommand импортирован или находится в том же пакете
         AuthCommand cmd = new AuthCommand(this, authManager);
 
-        if (getCommand("reg") != null) {
-            getCommand("reg").setExecutor(cmd);
+        getCommand("reg").setExecutor(cmd);
+        getCommand("l").setExecutor(cmd);
+        getCommand("code").setExecutor(cmd);
+
+        // --- РЕГИСТРАЦИЯ HEAL ---
+        if (getCommand("heal") != null) {
+            getCommand("heal").setExecutor(cmd);
         }
-        if (getCommand("l") != null) {
-            getCommand("l").setExecutor(cmd);
+        // ------------------------
+
+        if (getCommand("setauthspawn") != null) {
+            getCommand("setauthspawn").setExecutor(cmd);
+        } else {
+            getLogger().warning("Команда setauthspawn не найдена в plugin.yml!");
         }
 
         getLogger().info("LastAuth успешно запущен!");

@@ -1,15 +1,19 @@
 package net.jetluna.auth;
 
 import org.bukkit.entity.Player;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public class AuthManager {
 
-    // Список тех, кто успешно вошел.
-    // Если игрока тут нет — он не может двигаться.
+    // Кто успешно вошел
     private final Set<UUID> authorizedPlayers = new HashSet<>();
+
+    // Кто сейчас в процессе (вводит почту/код)
+    private final Map<UUID, AuthSession> sessions = new HashMap<>();
 
     public boolean isAuthorized(Player player) {
         return authorizedPlayers.contains(player.getUniqueId());
@@ -17,10 +21,17 @@ public class AuthManager {
 
     public void setAuthorized(Player player) {
         authorizedPlayers.add(player.getUniqueId());
-        player.sendMessage(net.jetluna.api.util.ChatUtil.parse("<green>Вы успешно вошли!"));
+        sessions.remove(player.getUniqueId()); // Удаляем сессию, он уже вошел
     }
 
-    public void logout(Player player) {
+    // --- НОВЫЕ МЕТОДЫ ДЛЯ СЕССИЙ ---
+
+    public AuthSession getSession(Player player) {
+        return sessions.computeIfAbsent(player.getUniqueId(), k -> new AuthSession());
+    }
+
+    public void removeSession(Player player) {
+        sessions.remove(player.getUniqueId());
         authorizedPlayers.remove(player.getUniqueId());
     }
 }

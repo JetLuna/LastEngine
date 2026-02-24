@@ -1,13 +1,14 @@
 name: LastAuth
-version: 1.0
+version: 1.0.0
 main: net.jetluna.auth.AuthPlugin
 api-version: 1.21
-depend: [LastApi] # Указываем, что нам нужен API
-
 commands:
   reg:
-    description: Регистрация
-    aliases: [register]
   l:
-    description: Вход
-    aliases: [login]
+  code:
+  heal:                # <--- ДОБАВЛЯЕМ
+    description: Restore health
+    permission: last.admin
+  setauthspawn:
+    description: Set spawn
+    permission: last.admin
