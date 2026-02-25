@@ -1,10 +1,7 @@
 package net.jetluna.lobby;
 
-import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.util.ChatUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -21,57 +18,46 @@ public class LobbyCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("Only players!");
-            return true;
-        }
+        if (!(sender instanceof Player)) return true;
+        Player player = (Player) sender;
 
-        // --- УСТАНОВКА СПАВНА ---
-        if (label.equalsIgnoreCase("setlobbyspawn")) {
-            if (!player.hasPermission("last.admin")) {
-                LanguageManager.sendMessage(player, "general.no_permission");
-                return true;
-            }
-
+        if (command.getName().equalsIgnoreCase("setlobbyspawn")) {
+            if (!player.hasPermission("last.admin")) return true;
             plugin.getConfig().set("spawn.world", player.getWorld().getName());
-            plugin.getConfig().set("spawn.x", player.getX());
-            plugin.getConfig().set("spawn.y", player.getY());
-            plugin.getConfig().set("spawn.z", player.getZ());
-            plugin.getConfig().set("spawn.yaw", player.getYaw());
-            plugin.getConfig().set("spawn.pitch", player.getPitch());
+            plugin.getConfig().set("spawn.x", player.getLocation().getX());
+            plugin.getConfig().set("spawn.y", player.getLocation().getY());
+            plugin.getConfig().set("spawn.z", player.getLocation().getZ());
+            plugin.getConfig().set("spawn.yaw", player.getLocation().getYaw());
+            plugin.getConfig().set("spawn.pitch", player.getLocation().getPitch());
             plugin.saveConfig();
-
-            LanguageManager.sendMessage(player, "lobby.spawn_set");
+            player.sendMessage(ChatUtil.parse("<green>Спавн установлен!"));
             return true;
         }
 
-        // --- ТЕЛЕПОРТАЦИЯ ---
-        if (label.equalsIgnoreCase("lobby") || label.equalsIgnoreCase("hub") || label.equalsIgnoreCase("l")) {
+        if (command.getName().equalsIgnoreCase("lobby") || command.getName().equalsIgnoreCase("hub")) {
             teleportToLobby(player);
+            return true;
+        }
+
+        if (command.getName().equalsIgnoreCase("setnpc")) {
+            if (!player.hasPermission("last.admin")) return true;
+            if (args.length < 1) return true;
+            plugin.getConfig().set("locations.npc." + args[0].toLowerCase(), player.getLocation());
+            plugin.saveConfig();
+            player.sendMessage(ChatUtil.parse("<green>NPC " + args[0] + " установлен!"));
             return true;
         }
 
         return false;
     }
 
+    // !!! ВОТ ЭТОТ МЕТОД НУЖЕН ДЛЯ LobbyListener !!!
     public void teleportToLobby(Player player) {
-        if (plugin.getConfig().contains("spawn.world")) {
-            World w = Bukkit.getWorld(plugin.getConfig().getString("spawn.world"));
-            if (w != null) {
-                double x = plugin.getConfig().getDouble("spawn.x");
-                double y = plugin.getConfig().getDouble("spawn.y");
-                double z = plugin.getConfig().getDouble("spawn.z");
-                float yaw = (float) plugin.getConfig().getDouble("spawn.yaw");
-                float pitch = (float) plugin.getConfig().getDouble("spawn.pitch");
-
-                player.teleport(new Location(w, x, y, z, yaw, pitch));
-
-                // Сообщение "Телепортация..."
-                LanguageManager.sendMessage(player, "lobby.teleport");
-            }
+        Location loc = plugin.getLobbySpawn();
+        if (loc != null) {
+            player.teleport(loc);
         } else {
-            // Если спавн не установлен
-            ChatUtil.sendMessage(player, "<red>Spawn not set!");
+            player.sendMessage(ChatUtil.parse("<red>Спавн не установлен!"));
         }
     }
 }

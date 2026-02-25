@@ -2,47 +2,42 @@ package net.jetluna.api.util;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ItemBuilder {
-
     private final ItemStack item;
     private final ItemMeta meta;
 
-    // Конструктор для Материала (Кровать, Компас...)
     public ItemBuilder(Material material) {
         this.item = new ItemStack(material);
         this.meta = item.getItemMeta();
     }
 
-    // !!! ВОТ ЭТОГО НЕ ХВАТАЛО !!!
-    // Конструктор для готового предмета (Голова игрока и т.д.)
     public ItemBuilder(ItemStack item) {
         this.item = item;
         this.meta = item.getItemMeta();
     }
-    
 
-    // --- НАЗВАНИЕ ---
-    public ItemBuilder setName(String text) {
-        if (meta != null) meta.displayName(ChatUtil.parse(text));
+    public ItemBuilder setName(String name) {
+        if (meta != null) {
+            meta.displayName(ChatUtil.parse(name));
+        }
         return this;
     }
 
-    // Для совместимости
-    public ItemBuilder name(String text) {
-        return setName(text);
-    }
-
-    // --- ОПИСАНИЕ ---
-    // Для конфига (List)
-    public ItemBuilder setLore(List<String> lines) {
-        if (meta != null && lines != null) {
+    // Метод для списка (был раньше)
+    public ItemBuilder setLore(List<String> lore) {
+        if (meta != null) {
             List<Component> components = new ArrayList<>();
-            for (String line : lines) {
+            for (String line : lore) {
                 components.add(ChatUtil.parse(line));
             }
             meta.lore(components);
@@ -50,25 +45,39 @@ public class ItemBuilder {
         return this;
     }
 
-    // Для кода (String...)
+    // !!! НОВЫЙ МЕТОД: Позволяет писать .setLore("Str1", "Str2") !!!
+    // Именно его требует AuthItems
     public ItemBuilder setLore(String... lines) {
-        return lore(lines);
+        return setLore(Arrays.asList(lines));
     }
 
-    // Для совместимости
-    public ItemBuilder lore(String... lines) {
+    public ItemBuilder addLore(String line) {
         if (meta != null) {
-            List<Component> components = new ArrayList<>();
-            for (String line : lines) {
-                components.add(ChatUtil.parse(line));
-            }
-            meta.lore(components);
+            List<Component> lore = meta.hasLore() ? meta.lore() : new ArrayList<>();
+            lore.add(ChatUtil.parse(line));
+            meta.lore(lore);
+        }
+        return this;
+    }
+
+    public ItemBuilder setGlow(boolean glow) {
+        if (glow && meta != null) {
+            // Исправленное зачарование (UNBREAKING вместо DURABILITY)
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
+        return this;
+    }
+
+    public ItemBuilder setOwner(String playerName) {
+        if (meta instanceof SkullMeta) {
+            ((SkullMeta) meta).setOwner(playerName);
         }
         return this;
     }
 
     public ItemStack build() {
-        item.setItemMeta(meta);
+        if (meta != null) item.setItemMeta(meta);
         return item;
     }
 }

@@ -3,6 +3,8 @@ package net.jetluna.lobby;
 import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.lobby.gui.LobbyGui; // ВОТ ЭТОГО НЕ ХВАТАЛО
+import net.jetluna.lobby.gui.RewardGui;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -11,7 +13,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class LobbyListener implements Listener {
@@ -22,21 +27,30 @@ public class LobbyListener implements Listener {
         this.plugin = plugin;
     }
 
-    // ВХОД ИГРОКА
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        event.setJoinMessage(null); // Отключаем стандартное сообщение
         Player player = event.getPlayer();
 
-        // Выдаем предметы
+        // Очищаем чат и инвентарь
+        player.getInventory().clear();
+        player.setHealth(20);
+        player.setFoodLevel(20);
+
+        // Выдаем предметы (Компас, Профиль и т.д.)
         LobbyItems.giveItems(player);
 
-        // Запускаем скорборд/таб
-        LobbyBoard.update(player);
-        LobbyTab.update(player);
+        // Сообщение приветствия (Таб и прочее обновляются через LobbyTask, но можно и тут)
+        String header = LanguageManager.getString(player, "lobby.tab.header").replace("%player%", player.getName());
+        String footer = LanguageManager.getString(player, "lobby.tab.footer").replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
+        player.sendPlayerListHeaderAndFooter(ChatUtil.parse(header), ChatUtil.parse(footer));
 
-        // Телепортируем на спавн
+        // Телепорт на спавн
         new LobbyCommand(plugin).teleportToLobby(player);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        event.quitMessage(null);
     }
 
     // ЗАПРЕТ НА ВЫБРАСЫВАНИЕ / ПЕРЕМЕЩЕНИЕ
@@ -49,8 +63,12 @@ public class LobbyListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
+        // Запрещаем двигать предметы в своем инвентаре, если не админ
         if (!event.getWhoClicked().hasPermission("last.admin")) {
-            event.setCancelled(true); // Запрещаем двигать предметы
+            // Если игрок в режиме креатива - можно, иначе нет
+            if (event.getWhoClicked().getGameMode() != org.bukkit.GameMode.CREATIVE) {
+                event.setCancelled(true);
+            }
         }
     }
 
@@ -120,20 +138,5 @@ public class LobbyListener implements Listener {
 
     private void playSound(Player player) {
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-    }
-
-    // ЧАТ (на всякий случай, если потерял)
-    @EventHandler
-    public void onChat(AsyncPlayerChatEvent event) {
-        event.setCancelled(true);
-        String prefix = net.jetluna.api.rank.RankManager.getPrefix(event.getPlayer());
-        String arrow = "<dark_gray>»";
-        String color = event.getPlayer().hasPermission("last.admin") ? "<white>" : "<gray>";
-
-        String format = prefix + " <white>" + event.getPlayer().getName() + " " + arrow + " " + color + event.getMessage();
-
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            ChatUtil.sendMessage(p, format);
-        }
     }
 }

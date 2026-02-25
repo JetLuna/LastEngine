@@ -1,12 +1,12 @@
 package net.jetluna.api.lang;
 
-import net.jetluna.api.LastApi;
 import net.jetluna.api.util.ChatUtil;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,65 +16,67 @@ public class LanguageManager {
 
     private static final Map<String, YamlConfiguration> languages = new HashMap<>();
     private static final Map<UUID, String> playerLangs = new HashMap<>();
-    private static final String DEFAULT_LANG = "ru";
+    private static File langFolder;
 
-    public static void load() {
-        loadLang("ru");
-        loadLang("en");
-        loadLang("ua");
+    public static void init(JavaPlugin plugin) {
+        langFolder = new File(plugin.getDataFolder(), "lang");
+        if (!langFolder.exists()) langFolder.mkdirs();
+
+        loadLang("ru", plugin);
+        loadLang("en", plugin);
+        loadLang("ua", plugin);
     }
 
-    private static void loadLang(String lang) {
-        File file = new File(LastApi.getInstance().getDataFolder(), "lang/" + lang + ".yml");
+    private static void loadLang(String lang, JavaPlugin plugin) {
+        File file = new File(langFolder, lang + ".yml");
         if (!file.exists()) {
-            LastApi.getInstance().saveResource("lang/" + lang + ".yml", false);
+            try {
+                plugin.saveResource("lang/" + lang + ".yml", false);
+            } catch (Exception e) {}
         }
         languages.put(lang, YamlConfiguration.loadConfiguration(file));
-        LastApi.getInstance().getLogger().info("Language " + lang + " loaded!");
     }
 
-    public static void setLang(Player player, String lang) {
-        if (!languages.containsKey(lang)) return;
-        playerLangs.put(player.getUniqueId(), lang);
-        ChatUtil.sendMessage(player, getString(player, "general.lang_changed"));
-    }
-
-    // --- ПОЛУЧЕНИЕ СТРОКИ ---
     public static String getString(Player player, String key) {
-        String lang = playerLangs.getOrDefault(player.getUniqueId(), DEFAULT_LANG);
+        String lang = "ru";
+        if (player != null && playerLangs.containsKey(player.getUniqueId())) {
+            lang = playerLangs.get(player.getUniqueId());
+        }
+
         YamlConfiguration config = languages.get(lang);
+        if (config == null) config = languages.get("ru");
 
-        if (config == null || !config.contains(key)) {
-            return "<red>Key not found: " + key;
-        }
+        String msg = config.getString(key);
+        if (msg == null) return "Key not found: " + key;
 
-        String text = config.getString(key);
-
-        if (text.contains("%prefix_server%")) {
-            text = text.replace("%prefix_server%", config.getString("prefix.server", ""));
-        }
-        if (text.contains("%prefix_error%")) {
-            text = text.replace("%prefix_error%", config.getString("prefix.error", ""));
-        }
-
-        return text;
+        // !!! ВАЖНО: Возвращаем сырой текст (с <red>, <gradient>), не переводим в § !!!
+        return msg;
     }
 
-    // --- ПОЛУЧЕНИЕ СПИСКА (ДЛЯ LORE) ---
     public static List<String> getList(Player player, String key) {
-        String lang = playerLangs.getOrDefault(player.getUniqueId(), DEFAULT_LANG);
-        YamlConfiguration config = languages.get(lang);
-
-        if (config == null || !config.contains(key)) {
-            return Collections.singletonList("<red>List not found: " + key);
+        String lang = "ru";
+        if (player != null && playerLangs.containsKey(player.getUniqueId())) {
+            lang = playerLangs.get(player.getUniqueId());
         }
 
+        YamlConfiguration config = languages.get(lang);
+        if (config == null) config = languages.get("ru");
+
+        // Возвращаем список как есть
         return config.getStringList(key);
     }
 
-    // --- ОТПРАВКА СООБЩЕНИЯ (НОВЫЙ МЕТОД) ---
+    public static void setLang(Player player, String lang) {
+        if (languages.containsKey(lang)) {
+            playerLangs.put(player.getUniqueId(), lang);
+        }
+    }
+
     public static void sendMessage(Player player, String key) {
-        String text = getString(player, key);
-        ChatUtil.sendMessage(player, text);
+        if (player != null) {
+            String text = getString(player, key);
+            // А вот здесь красим, потому что отправляем в чат
+            ChatUtil.sendMessage(player, text);
+        }
     }
 }
