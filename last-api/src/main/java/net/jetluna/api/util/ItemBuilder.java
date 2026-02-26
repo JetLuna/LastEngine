@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ItemBuilder {
+
     private final ItemStack item;
     private final ItemMeta meta;
 
@@ -26,6 +27,12 @@ public class ItemBuilder {
         this.meta = item.getItemMeta();
     }
 
+    // !!! ВОТ ЭТОТ МЕТОД, КОТОРОГО НЕ ХВАТАЛО !!!
+    public ItemBuilder setType(Material material) {
+        this.item.setType(material);
+        return this;
+    }
+
     public ItemBuilder setName(String name) {
         if (meta != null) {
             meta.displayName(ChatUtil.parse(name));
@@ -33,9 +40,8 @@ public class ItemBuilder {
         return this;
     }
 
-    // Метод для списка (был раньше)
     public ItemBuilder setLore(List<String> lore) {
-        if (meta != null) {
+        if (meta != null && lore != null) {
             List<Component> components = new ArrayList<>();
             for (String line : lore) {
                 components.add(ChatUtil.parse(line));
@@ -45,39 +51,41 @@ public class ItemBuilder {
         return this;
     }
 
-    // !!! НОВЫЙ МЕТОД: Позволяет писать .setLore("Str1", "Str2") !!!
-    // Именно его требует AuthItems
-    public ItemBuilder setLore(String... lines) {
-        return setLore(Arrays.asList(lines));
+    public ItemBuilder setLore(String... lore) {
+        return setLore(Arrays.asList(lore));
     }
 
     public ItemBuilder addLore(String line) {
         if (meta != null) {
-            List<Component> lore = meta.hasLore() ? meta.lore() : new ArrayList<>();
+            List<Component> lore = meta.lore();
+            if (lore == null) lore = new ArrayList<>();
             lore.add(ChatUtil.parse(line));
             meta.lore(lore);
         }
         return this;
     }
 
-    public ItemBuilder setGlow(boolean glow) {
-        if (glow && meta != null) {
-            // Исправленное зачарование (UNBREAKING вместо DURABILITY)
-            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+    public ItemBuilder setOwner(String owner) {
+        if (meta instanceof SkullMeta) {
+            ((SkullMeta) meta).setOwner(owner);
         }
         return this;
     }
 
-    public ItemBuilder setOwner(String playerName) {
-        if (meta instanceof SkullMeta) {
-            ((SkullMeta) meta).setOwner(playerName);
+    public ItemBuilder setGlow(boolean glow) {
+        if (glow) {
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        } else {
+            for (Enchantment enchant : meta.getEnchants().keySet()) {
+                meta.removeEnchant(enchant);
+            }
         }
         return this;
     }
 
     public ItemStack build() {
-        if (meta != null) item.setItemMeta(meta);
+        item.setItemMeta(meta);
         return item;
     }
 }

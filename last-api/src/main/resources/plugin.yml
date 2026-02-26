@@ -2,13 +2,32 @@ name: LastApi
 version: 1.0.0
 main: net.jetluna.api.LastApi
 api-version: 1.21
-
-# ВОТ ЭТОГО НЕ ХВАТАЛО:
 commands:
+  setrank:
+    description: Выдать ранг игроку
+    usage: /setrank <player> <rank>
+    permission: last.admin
+  kick:
+    description: Кикнуть игрока
+    usage: /kick <player> [reason]
+  mute:
+    description: Замутить игрока
+    usage: /mute <player> <time> [reason]
+  ban:
+    description: Забанить игрока
+    usage: /ban <player> <time> [reason]
+  unmute:
+    description: Снять мут
+    usage: /unmute <player>
+  unban:
+    description: Снять бан
+    usage: /unban <player>
+  history:
+    description: История наказаний
+    usage: /history <player>
+  banlist:
+    description: Список активных банов
+    usage: /banlist
   lang:
     description: Сменить язык
     usage: /lang <ru/en/ua>
-  setrank:
-    description: Выдать ранг игроку
-    permission: last.admin
-    usage: /setrank <ник> <ранг>
