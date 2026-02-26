@@ -12,7 +12,7 @@ public enum Rank {
     GO("Go", "<yellow><bold>GO ", 2),
     PLUS("Plus", "<gold><bold>PLUS ", 3),
     ULTRA("Ultra", "<light_purple><bold>ULTRA ", 4),
-    MAX("Max", "<purple><bold>MAX ", 5),
+    MAX("Max", "<dark_purple><bold>MAX ", 5),
 
     // --- ПЕРСОНАЛ (STAFF) ---
     JUNIOR("Junior", "<green><bold>JUNIOR ", 6),

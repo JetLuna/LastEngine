@@ -61,7 +61,7 @@ lobby:
       holo: "<yellow>Нажми для получения"
 
   rewards:
-    title: "<black>Ежедневные награды"
+    title: "Ежедневные награды"
 
     items:
       # Формат названия дня
@@ -93,7 +93,7 @@ lobby:
 
   # МЕНЮ ПРОФИЛЯ (GUI)
   profile_gui:
-    title: "<black>Профиль игрока"
+    title: "Профиль игрока"
 
     # Слот 13 - Голова (Основная инфа)
     info:
@@ -139,13 +139,26 @@ lobby:
 
   # МЕНЮ ВЫБОРА РЕЖИМОВ (Компас)
   inventory:
-    title: "<black>Меню Сервера"
+    title: "Меню Сервера"
     bedwars:
-      name: "<red><bold>BedWars"
+      name: "<red>BedWars"
       lore:
         - "<gray>Классический режим."
         - ""
         - "<yellow>▶ Нажми, чтобы играть!"
+    vanilla:
+      name: "<green>Vanilla>"
+      lore:
+      - "<gray>Классическое выживание"
+      - "<gray>Версия: <white>1.21"
+      - ""
+      - "<yellow>▶ Нажми, чтобы играть!"
+    duels:
+      name: "<yellow>Duels"
+      lore:
+        - "<gray>Сражения 1 на 1"
+        - ""
+        - "<yellow>Скоро..."
 
   messages:
     spawn_set: "%prefix_server% <green>Точка спавна установлена!"

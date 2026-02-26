@@ -1,6 +1,8 @@
 package net.jetluna.lobby.gui;
 
 import net.jetluna.api.lang.LanguageManager;
+import net.jetluna.api.rank.Rank;
+import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
@@ -31,15 +33,14 @@ public class LobbyGui implements Listener {
         gui.setItem(11, bedwars);
 
         ItemStack vanilla = new ItemBuilder(Material.GRASS_BLOCK)
-                .setName("<green><b>Vanilla</b>")
-                .addLore("<gray>Классическое выживание")
-                .addLore("<gray>Версия: <white>1.21")
+                .setName(LanguageManager.getString(player, "lobby.inventory.vanilla.name"))
+                .setLore(LanguageManager.getList(player, "lobby.inventory.vanilla.lore"))
                 .build();
         gui.setItem(13, vanilla);
 
         ItemStack duels = new ItemBuilder(Material.IRON_SWORD)
-                .setName("<yellow><b>Duels</b>")
-                .addLore("<gray>Сражения 1 на 1")
+                .setName(LanguageManager.getString(player, "lobby.inventory.duels.name"))
+                .setLore(LanguageManager.getList(player, "lobby.inventory.duels.lore"))
                 .build();
         gui.setItem(15, duels);
 
@@ -54,7 +55,17 @@ public class LobbyGui implements Listener {
         PlayerStats stats = StatsManager.getStats(player);
         if (stats == null) return;
 
-        String rank = player.hasPermission("last.admin") ? "<red>Admin" : "<gray>Игрок";
+        Rank rank = RankManager.getRank(player);
+        String rankDisplay;
+
+        // 2. Проверяем вес (lombok уже создал метод getWeight())
+        if (rank.getWeight() == 1) {
+            // Если это обычный игрок - пишем просто текст
+            rankDisplay = "<gray>Player";
+        } else {
+            // Если донатер или админ - пишем префикс
+            rankDisplay = rank.getPrefix();
+        }
         String progressBar = getProgressBar(stats.getExp(), 1000);
 
         // !!! ИСПРАВЛЕНИЕ: Обрабатываем список строк правильно !!!
@@ -63,7 +74,7 @@ public class LobbyGui implements Listener {
 
         for (String line : lore) {
             finalLore.add(line
-                    .replace("%rank%", rank)
+                    .replace("%rank%", rankDisplay)
                     .replace("%level%", String.valueOf(stats.getLevel()))
                     .replace("%progressbar%", progressBar)
                     .replace("%exp%", String.valueOf(stats.getExp()))
