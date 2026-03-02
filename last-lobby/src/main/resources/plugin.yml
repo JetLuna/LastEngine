@@ -15,3 +15,13 @@ commands:
   setnpc:
     description: Поставить NPC
     permission: last.admin
+  physics:
+    description: Управление физикой мира
+    aliases: [phys]
+  fly:
+    description: Включить полет
+    usage: /fly
+  doublejump:
+    description: Включить двойной прыжок
+    usage: /doublejump
+    aliases: [ dj ]

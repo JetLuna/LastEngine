@@ -1,8 +1,9 @@
 package net.jetluna.lobby;
 
 import net.jetluna.api.lang.LanguageManager;
-import net.jetluna.lobby.gui.LobbyGui;
+// import net.jetluna.lobby.gui.LobbyGui; <--- УБРАЛ ЭТУ СТРОКУ, ОНА ВЫЗЫВАЛА ОШИБКУ
 import net.jetluna.lobby.gui.RewardGui;
+import net.jetluna.lobby.gui.SettingsGui;
 import net.jetluna.lobby.npc.NpcManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,7 +22,7 @@ public class LobbyPlugin extends JavaPlugin {
         saveDefaultConfig();
 
         this.npcManager = new NpcManager(this);
-        this.npcManager.removeAll(); // Чистим старых
+        this.npcManager.removeAll();
 
         // Команды
         LobbyCommand cmdExecutor = new LobbyCommand(this);
@@ -30,17 +31,22 @@ public class LobbyPlugin extends JavaPlugin {
         if (getCommand("hub") != null) getCommand("hub").setExecutor(cmdExecutor);
         if (getCommand("setnpc") != null) getCommand("setnpc").setExecutor(cmdExecutor);
 
+        if (getCommand("physics") != null) getCommand("physics").setExecutor(new PhysicsCommand());
+
+        // Новые команды (теперь FeatureCommand существует, ошибка пропадет)
+        FeatureCommand featureCmd = new FeatureCommand();
+        if (getCommand("fly") != null) getCommand("fly").setExecutor(featureCmd);
+        if (getCommand("doublejump") != null) getCommand("doublejump").setExecutor(featureCmd);
+        if (getCommand("dj") != null) getCommand("dj").setExecutor(featureCmd);
+
         // События
         getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         getServer().getPluginManager().registerEvents(new RewardGui(), this);
-        getServer().getPluginManager().registerEvents(new LobbyGui(), this);
+        getServer().getPluginManager().registerEvents(new LobbyGui(), this); // Здесь всё ок, они в одном пакете
         getServer().getPluginManager().registerEvents(new LobbyChat(), this);
+        getServer().getPluginManager().registerEvents(new SettingsGui(), this);
 
-        // Спавн НПС
         getServer().getScheduler().runTaskLater(this, this::spawnLobbyNpcs, 60L);
-
-        // !!! ИСПРАВЛЕНИЕ: ЗАПУСКАЕМ ЗАДАЧУ ОБНОВЛЕНИЯ (TAB + SCOREBOARD) !!!
-        // Запускаем каждую секунду (20 тиков)
         new LobbyTask(this).runTaskTimer(this, 20L, 20L);
 
         getLogger().info("LobbyPlugin успешно запущен!");
@@ -48,15 +54,12 @@ public class LobbyPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (npcManager != null) {
-            npcManager.removeAll();
-        }
+        if (npcManager != null) npcManager.removeAll();
     }
 
     private void spawnLobbyNpcs() {
         if (npcManager == null) return;
         npcManager.removeAll();
-
         spawnOneNpc("bedwars", "lobby.npc.bedwars.name", "Agrael99");
         spawnOneNpc("vanilla", "lobby.npc.vanilla.name", "Notch");
         spawnOneNpc("duels", "lobby.npc.duels.name", "Huahwi");
@@ -79,16 +82,8 @@ public class LobbyPlugin extends JavaPlugin {
         }
         World world = Bukkit.getWorld(config.getString("spawn.world"));
         if (world == null) return null;
-
-        return new Location(world,
-                config.getDouble("spawn.x"),
-                config.getDouble("spawn.y"),
-                config.getDouble("spawn.z"),
-                (float) config.getDouble("spawn.yaw"),
-                (float) config.getDouble("spawn.pitch"));
+        return new Location(world, config.getDouble("spawn.x"), config.getDouble("spawn.y"), config.getDouble("spawn.z"), (float) config.getDouble("spawn.yaw"), (float) config.getDouble("spawn.pitch"));
     }
 
-    public static LobbyPlugin getInstance() {
-        return instance;
-    }
+    public static LobbyPlugin getInstance() { return instance; }
 }

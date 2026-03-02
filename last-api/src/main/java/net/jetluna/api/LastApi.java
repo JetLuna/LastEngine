@@ -1,5 +1,6 @@
 package net.jetluna.api;
 
+import net.jetluna.api.chat.MsgCommand;
 import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.punish.PunishCommand;
 import net.jetluna.api.punish.PunishmentManager;
@@ -32,6 +33,13 @@ public class LastApi extends JavaPlugin {
         for (String cmd : cmds) {
             if (getCommand(cmd) != null) getCommand(cmd).setExecutor(pc);
         }
+
+        if (getCommand("sc") != null) getCommand("sc").setExecutor(new net.jetluna.api.chat.ChatCommands("sc"));
+        if (getCommand("dc") != null) getCommand("dc").setExecutor(new net.jetluna.api.chat.ChatCommands("dc"));
+
+        MsgCommand msgCmd = new MsgCommand();
+        if (getCommand("msg") != null) getCommand("msg").setExecutor(msgCmd);
+        if (getCommand("r") != null) getCommand("r").setExecutor(msgCmd);
     }
 
     public static LastApi getInstance() { return instance; }

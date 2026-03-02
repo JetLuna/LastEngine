@@ -31,3 +31,19 @@ commands:
   lang:
     description: Сменить язык
     usage: /lang <ru/en/ua>
+  sc:
+    description: Чат для персонала
+    usage: /sc <сообщение>
+    aliases: [ staffchat ]
+  dc:
+    description: Чат для донатеров
+    usage: /dc <сообщение>
+    aliases: [ donorchat ]
+  msg:
+    description: Личное сообщение
+    usage: /msg <player> <message>
+    aliases: [ tell, w ]
+  r:
+    description: Быстрый ответ
+    usage: /r <message>
+    aliases: [ reply ]

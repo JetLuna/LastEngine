@@ -1,4 +1,4 @@
-package net.jetluna.lobby.gui;
+package net.jetluna.lobby;
 
 import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
@@ -7,8 +7,10 @@ import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.lobby.gui.SettingsGui; // !!! ВАЖНЫЙ ИМПОРТ
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,7 +23,6 @@ import java.util.List;
 
 public class LobbyGui implements Listener {
 
-    // --- МЕНЮ КОМПАСА ---
     public static void openSelector(Player player) {
         String title = LanguageManager.getString(player, "lobby.inventory.title");
         Inventory gui = Bukkit.createInventory(player, 27, title);
@@ -47,7 +48,6 @@ public class LobbyGui implements Listener {
         player.openInventory(gui);
     }
 
-    // --- МЕНЮ ПРОФИЛЯ ---
     public static void openProfile(Player player) {
         String title = LanguageManager.getString(player, "lobby.profile_gui.title");
         Inventory gui = Bukkit.createInventory(player, 54, title);
@@ -56,19 +56,9 @@ public class LobbyGui implements Listener {
         if (stats == null) return;
 
         Rank rank = RankManager.getRank(player);
-        String rankDisplay;
-
-        // 2. Проверяем вес (lombok уже создал метод getWeight())
-        if (rank.getWeight() == 1) {
-            // Если это обычный игрок - пишем просто текст
-            rankDisplay = "<gray>Player";
-        } else {
-            // Если донатер или админ - пишем префикс
-            rankDisplay = rank.getPrefix();
-        }
+        String rankDisplay = (rank.getWeight() == 1) ? "<gray>Player" : rank.getPrefix();
         String progressBar = getProgressBar(stats.getExp(), 1000);
 
-        // !!! ИСПРАВЛЕНИЕ: Обрабатываем список строк правильно !!!
         List<String> lore = LanguageManager.getList(player, "lobby.profile_gui.info.lore");
         List<String> finalLore = new ArrayList<>();
 
@@ -87,9 +77,16 @@ public class LobbyGui implements Listener {
         ItemStack info = new ItemBuilder(Material.PLAYER_HEAD)
                 .setOwner(player.getName())
                 .setName(LanguageManager.getString(player, "lobby.profile_gui.info.name"))
-                .setLore(finalLore) // Передаем готовый список
+                .setLore(finalLore)
                 .build();
         gui.setItem(13, info);
+
+        // !!! КНОПКА НАСТРОЕК (Я ЕЕ ДОБАВИЛ) !!!
+        ItemStack settings = new ItemBuilder(Material.COMPARATOR)
+                .setName("&eНастройки")
+                .setLore("&7Управление чатом,", "&7видимостью и эффектами.")
+                .build();
+        gui.setItem(10, settings);
 
         player.openInventory(gui);
     }
@@ -115,6 +112,14 @@ public class LobbyGui implements Listener {
 
         if (title.equals(selectorTitle) || title.equals(profileTitle)) {
             event.setCancelled(true);
+        }
+
+        // Обработка клика в профиле
+        if (title.equals(profileTitle)) {
+            if (event.getSlot() == 10) { // Если клик по Настройкам (10 слот)
+                SettingsGui.open(player);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+            }
         }
     }
 }
