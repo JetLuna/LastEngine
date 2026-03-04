@@ -50,6 +50,11 @@ public class LobbyPlugin extends JavaPlugin {
         new LobbyTask(this).runTaskTimer(this, 20L, 20L);
 
         getLogger().info("LobbyPlugin успешно запущен!");
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.CustomizationGui(), this);
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.JoinerGui(), this);
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.SuffixGui(), this);
     }
 
     @Override

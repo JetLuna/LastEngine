@@ -47,3 +47,18 @@ commands:
     description: Быстрый ответ
     usage: /r <message>
     aliases: [ reply ]
+  eco:
+    description: Управление экономикой
+    usage: /eco <give|set> <player> <coins|emeralds> <amount>
+  stream:
+    description: Управление стримами
+    usage: /stream <add|stop> <ссылка>
+  streams:
+    description: Список активных стримов
+    usage: /streams
+  report:
+    description: Отправить жалобу на игрока
+    usage: /report <ник> <причина>
+  reports:
+    description: Просмотр активных жалоб
+    usage: /reports

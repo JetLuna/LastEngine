@@ -1,13 +1,15 @@
 package net.jetluna.lobby;
 
 import net.jetluna.api.lang.LanguageManager;
-import net.jetluna.api.rank.Rank;           // !!! ДОБАВИЛ
-import net.jetluna.api.rank.RankManager;    // !!! ДОБАВИЛ
+import net.jetluna.api.rank.Rank;
+import net.jetluna.api.rank.RankManager;
+import net.jetluna.api.stats.PlayerStats;
+import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
-import net.jetluna.lobby.gui.SettingsGui;   // !!! ДОБАВИЛ
+import net.jetluna.lobby.gui.SettingsGui;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;                 // !!! ДОБАВИЛ
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -15,7 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.*;           // !!! Звездочка подключит все события игрока
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
 public class LobbyListener implements Listener {
@@ -35,24 +37,40 @@ public class LobbyListener implements Listener {
         player.setHealth(20);
         player.setFoodLevel(20);
 
-        // Выдаем предметы (Компас, Профиль и т.д.)
         LobbyItems.giveItems(player);
-
-        // Сообщение приветствия
-        String header = LanguageManager.getString(player, "lobby.tab.header").replace("%player%", player.getName());
-        String footer = LanguageManager.getString(player, "lobby.tab.footer").replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
-        player.sendPlayerListHeaderAndFooter(ChatUtil.parse(header), ChatUtil.parse(footer));
-
-        // Телепорт на спавн
         new LobbyCommand(plugin).teleportToLobby(player);
+
+        // Джоинеры (Сообщения при входе)
+        Rank rank = RankManager.getRank(player);
+        String rawPrefix = rank.getWeight() == 1 ? "&7" : rank.getPrefix();
+        String legacyPrefix = net.jetluna.lobby.gui.JoinerGui.toLegacy(rawPrefix);
+
+        // Получаем суффикс из ГЛОБАЛЬНОЙ статистики
+        PlayerStats stats = StatsManager.getStats(player);
+        String suffix = (stats != null && stats.getSuffix() != null) ? stats.getSuffix().replace("&", "§") : "";
+
+        // Склеиваем всё вместе
+        String joinMsg = net.jetluna.lobby.gui.JoinerGui.getActiveMessage(player)
+                .replace("%player%", player.getName())
+                .replace("%prefix%", legacyPrefix)
+                .replace("%suffix%", suffix)
+                .replace("&", "§");
+
+        // ПЕРЕДАЕМ СООБЩЕНИЕ НАПРЯМУЮ СЕРВЕРУ (Он сам разошлет его ровно 1 раз)
+        event.setJoinMessage(joinMsg);
 
         // Включаем полет/прыжки если надо
         SettingsGui.updateFlight(player);
+
+        // Оповещение стаффа (если игрок Junior+)
+        net.jetluna.api.staff.StaffNotifier.notifyJoin(player, suffix);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         event.quitMessage(null);
+
+        net.jetluna.api.pet.PetManager.removePet(event.getPlayer());
     }
 
     // ЗАПРЕТ НА ВЫБРАСЫВАНИЕ / ПЕРЕМЕЩЕНИЕ
@@ -82,18 +100,21 @@ public class LobbyListener implements Listener {
         if (item == null) return;
 
         if (item.getType() == Material.COMPASS) {
+            event.setCancelled(true);
             LobbyGui.openSelector(player);
             playSound(player);
             return;
         }
 
         if (item.getType() == Material.PLAYER_HEAD) {
+            event.setCancelled(true);
             LobbyGui.openProfile(player);
             playSound(player);
             return;
         }
 
         if (item.getType() == Material.LIME_DYE || item.getType() == Material.GRAY_DYE) {
+            event.setCancelled(true);
             toggleVisibility(player, item);
             playSound(player);
         }
@@ -176,5 +197,27 @@ public class LobbyListener implements Listener {
                 player.setAllowFlight(true);
             }
         }
+    }
+
+    // ЗАЩИТА УРОНА И ГОЛОДА
+    @EventHandler
+    public void onDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        Player player = (Player) event.getEntity();
+
+        if (event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.VOID) {
+            if (plugin.getLobbySpawn() != null) {
+                player.teleport(plugin.getLobbySpawn());
+            } else {
+                player.teleport(player.getWorld().getSpawnLocation());
+            }
+        }
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onFood(org.bukkit.event.entity.FoodLevelChangeEvent event) {
+        event.setCancelled(true);
+        event.setFoodLevel(20);
     }
 }

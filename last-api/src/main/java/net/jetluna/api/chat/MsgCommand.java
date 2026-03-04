@@ -1,8 +1,16 @@
 package net.jetluna.api.chat;
 
 import net.jetluna.api.rank.RankManager;
+import net.jetluna.api.stats.PlayerStats;
+import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,7 +23,6 @@ import java.util.UUID;
 
 public class MsgCommand implements CommandExecutor {
 
-    // Храним, кому отвечать: <Кто пишет, Кому отвечать>
     private static final Map<UUID, UUID> replies = new HashMap<>();
 
     @Override
@@ -30,12 +37,12 @@ public class MsgCommand implements CommandExecutor {
         // --- КОМАНДА /MSG ---
         if (cmd.equals("msg") || cmd.equals("tell") || cmd.equals("w")) {
             if (args.length < 2) {
-                ChatUtil.sendMessage(player, "<yellow>Использование: /msg <ник> <сообщение>");
+                ChatUtil.sendMessage(player, "&eИспользование: /msg <ник> <сообщение>");
                 return true;
             }
             target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                ChatUtil.sendMessage(player, "<red>Игрок не найден!");
+                ChatUtil.sendMessage(player, "&cИгрок не найден!");
                 return true;
             }
             message = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
@@ -44,16 +51,16 @@ public class MsgCommand implements CommandExecutor {
         // --- КОМАНДА /R (ОТВЕТИТЬ) ---
         else if (cmd.equals("r") || cmd.equals("reply")) {
             if (args.length < 1) {
-                ChatUtil.sendMessage(player, "<yellow>Использование: /r <сообщение>");
+                ChatUtil.sendMessage(player, "&eИспользование: /r <сообщение>");
                 return true;
             }
             if (!replies.containsKey(player.getUniqueId())) {
-                ChatUtil.sendMessage(player, "<red>Вам некому отвечать.");
+                ChatUtil.sendMessage(player, "&cВам некому отвечать.");
                 return true;
             }
             target = Bukkit.getPlayer(replies.get(player.getUniqueId()));
             if (target == null) {
-                ChatUtil.sendMessage(player, "<red>Игрок вышел из сети.");
+                ChatUtil.sendMessage(player, "&cИгрок вышел из сети.");
                 return true;
             }
             message = String.join(" ", args);
@@ -65,36 +72,69 @@ public class MsgCommand implements CommandExecutor {
     }
 
     private void sendPrivateMessage(Player sender, Player target, String message) {
-        // Запоминаем для /r
         replies.put(sender.getUniqueId(), target.getUniqueId());
         replies.put(target.getUniqueId(), sender.getUniqueId());
 
-        // Получаем префиксы
-        String senderPrefix = RankManager.getPrefix(sender);
-        String targetPrefix = RankManager.getPrefix(target);
+        // Зачищаем префиксы от тегов MiniMessage
+        String senderPrefix = toLegacy(RankManager.getPrefix(sender));
+        String targetPrefix = toLegacy(RankManager.getPrefix(target));
+
+        // Получаем суффиксы из глобальной статистики
+        PlayerStats senderStats = StatsManager.getStats(sender);
+        String senderSuffix = (senderStats != null && senderStats.getSuffix() != null) ? senderStats.getSuffix().replace("&", "§") : "";
+
+        PlayerStats targetStats = StatsManager.getStats(target);
+        String targetSuffix = (targetStats != null && targetStats.getSuffix() != null) ? targetStats.getSuffix().replace("&", "§") : "";
 
         // --- Формат для ОТПРАВИТЕЛЯ (Я -> Игрок) ---
-        // [Я -> Admin JetLuna] сообщение
-        // Делаем кликабельным, чтобы можно было быстро дописать еще сообщение этому же игроку
-        String senderFormat =
-                "<click:suggest_command:'/msg " + target.getName() + " '>" +
-                        "<hover:show_text:'<gray>Нажми, чтобы написать еще'>" +
-                        "<dark_gray>[<green>Я <dark_gray>-> " + targetPrefix + target.getName() + "<dark_gray>] <white>" + message +
-                        "</hover></click>";
+        String sText = "&8[&aЯ &8-> " + targetPrefix + target.getName() + targetSuffix + "&8] &f" + message;
+        BaseComponent[] senderComp = TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', sText));
+        for (BaseComponent c : senderComp) {
+            c.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/msg " + target.getName() + " "));
+            c.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.translateAlternateColorCodes('&', "&7Нажми, чтобы написать еще"))));
+        }
 
         // --- Формат для ПОЛУЧАТЕЛЯ (Игрок -> Я) ---
-        // [Admin JetLuna -> Я] сообщение
-        // При клике в чат вставится: /msg JetLuna
-        String targetFormat =
-                "<click:suggest_command:'/msg " + sender.getName() + " '>" +
-                        "<hover:show_text:'<gray>Нажми, чтобы ответить'>" +
-                        "<dark_gray>[" + senderPrefix + sender.getName() + " <dark_gray>-> <green>Я<dark_gray>] <white>" + message +
-                        "</hover></click>";
+        String tText = "&8[" + senderPrefix + sender.getName() + senderSuffix + " &8-> &aЯ&8] &f" + message;
+        BaseComponent[] targetComp = TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', tText));
+        for (BaseComponent c : targetComp) {
+            c.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/msg " + sender.getName() + " "));
+            c.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.translateAlternateColorCodes('&', "&7Нажми, чтобы ответить"))));
+        }
 
-        ChatUtil.sendMessage(sender, senderFormat);
-        ChatUtil.sendMessage(target, targetFormat);
+        // Отправляем нативные компоненты
+        sender.spigot().sendMessage(senderComp);
+        target.spigot().sendMessage(targetComp);
 
         // Звук
         target.playSound(target.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 2f);
+    }
+
+    private String toLegacy(String text) {
+        if (text == null) return "";
+        return text
+                .replace("<dark_red>", "&4").replace("</dark_red>", "")
+                .replace("<red>", "&c").replace("</red>", "")
+                .replace("<gold>", "&6").replace("</gold>", "")
+                .replace("<yellow>", "&e").replace("</yellow>", "")
+                .replace("<dark_green>", "&2").replace("</dark_green>", "")
+                .replace("<green>", "&a").replace("</green>", "")
+                .replace("<aqua>", "&b").replace("</aqua>", "")
+                .replace("<dark_aqua>", "&3").replace("</dark_aqua>", "")
+                .replace("<dark_blue>", "&1").replace("</dark_blue>", "")
+                .replace("<blue>", "&9").replace("</blue>", "")
+                .replace("<light_purple>", "&d").replace("</light_purple>", "")
+                .replace("<dark_purple>", "&5").replace("</dark_purple>", "")
+                .replace("<white>", "&f").replace("</white>", "")
+                .replace("<gray>", "&7").replace("</gray>", "")
+                .replace("<dark_gray>", "&8").replace("</dark_gray>", "")
+                .replace("<black>", "&0").replace("</black>", "")
+                .replace("<bold>", "&l").replace("</bold>", "")
+                .replace("<italic>", "&o").replace("</italic>", "")
+                .replace("<strikethrough>", "&m").replace("</strikethrough>", "")
+                .replace("<underlined>", "&n").replace("</underlined>", "")
+                .replace("<obfuscated>", "&k").replace("</obfuscated>", "")
+                .replace("<reset>", "&r").replace("</reset>", "")
+                .replaceAll("<[^>]+>", "");
     }
 }

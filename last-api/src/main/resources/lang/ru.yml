@@ -14,7 +14,7 @@ lobby:
     nickname: "<gray>Никнейм:"
     rank: "<gray>Ранг:"
     online: "<blue><bold>Онлайн:"
-    footer: "<yellow>play.lastengine.net"
+    footer: "<green>play.lastengine.net"
   tab:
     header: "\n<gradient:aqua:blue><bold>LAST ENGINE NETWORK</bold></gradient>\n<gray>Добро пожаловать, %player%!\n"
     footer: "\n<gray>Онлайн: <green>%online%\n\n<yellow>Сайт: <white>www.lastengine.net\n"

@@ -120,36 +120,54 @@ public class SettingsGui implements Listener {
         Rank rank = RankManager.getRank(player);
         if (rank.getWeight() < 3) {
             ChatUtil.sendMessage(player, "&cВам нужна привилегия PLUS!");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             return;
         }
+
         if (flyDisabled.contains(player.getUniqueId())) {
+            // Включаем Флай
             flyDisabled.remove(player.getUniqueId());
             ChatUtil.sendMessage(player, "&aФлай включен!");
+
+            // Автоматически ВЫКЛЮЧАЕМ Двойной прыжок, если он был включен
+            if (!doubleJumpDisabled.contains(player.getUniqueId())) {
+                doubleJumpDisabled.add(player.getUniqueId());
+                ChatUtil.sendMessage(player, "&eДвойной прыжок был автоматически выключен.");
+            }
         } else {
+            // Выключаем Флай
             flyDisabled.add(player.getUniqueId());
             ChatUtil.sendMessage(player, "&cФлай выключен!");
         }
         updateFlight(player);
-        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
     }
 
     public static void toggleDoubleJump(Player player) {
         Rank rank = RankManager.getRank(player);
         if (rank.getWeight() < 2) {
             ChatUtil.sendMessage(player, "&cВам нужна привилегия GO!");
-            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             return;
         }
+
         if (doubleJumpDisabled.contains(player.getUniqueId())) {
+            // Включаем Двойной прыжок
             doubleJumpDisabled.remove(player.getUniqueId());
             ChatUtil.sendMessage(player, "&aДвойной прыжок включен!");
+
+            // Автоматически ВЫКЛЮЧАЕМ Флай, если он был включен
+            if (!flyDisabled.contains(player.getUniqueId())) {
+                flyDisabled.add(player.getUniqueId());
+                ChatUtil.sendMessage(player, "&eФлай был автоматически выключен.");
+            }
         } else {
+            // Выключаем Двойной прыжок
             doubleJumpDisabled.add(player.getUniqueId());
             ChatUtil.sendMessage(player, "&cДвойной прыжок выключен!");
         }
         updateFlight(player);
-        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
     }
 
     // --- ГЕТТЕРЫ И ЛОГИКА ---

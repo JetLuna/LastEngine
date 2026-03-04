@@ -89,6 +89,13 @@ public class LobbyGui implements Listener {
         gui.setItem(10, settings);
 
         player.openInventory(gui);
+
+        // !!! КНОПКА КАСТОМИЗАЦИИ !!!
+        ItemStack customization = new ItemBuilder(Material.LEATHER_CHESTPLATE)
+                .setName("&dКастомизация")
+                .setLore("&7Выделитесь из толпы!", "&7Сообщения при входе, гаджеты и партиклы.")
+                .build();
+        gui.setItem(16, customization);
     }
 
     private static String getProgressBar(int current, int max) {
@@ -120,6 +127,11 @@ public class LobbyGui implements Listener {
                 SettingsGui.open(player);
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             }
+        }
+
+        if (event.getSlot() == 16) { // Кастомизация
+            net.jetluna.lobby.gui.CustomizationGui.open(player);
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
         }
     }
 }

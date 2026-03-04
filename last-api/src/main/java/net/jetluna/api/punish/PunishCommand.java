@@ -65,11 +65,11 @@ public class PunishCommand implements CommandExecutor {
         // --- KICK / MUTE / BAN / UN... ---
 
         // Права
-        if ((cmd.equals("kick") || cmd.equals("mute") || cmd.equals("unmute")) && adminRank.getWeight() < 6) {
+        if ((cmd.equals("kick") || cmd.equals("mute") || cmd.equals("unmute")) && adminRank.getWeight() < 7) {
             ChatUtil.sendMessage(admin, "<red>Нужен ранг JUNIOR+");
             return true;
         }
-        if ((cmd.equals("ban") || cmd.equals("unban")) && adminRank.getWeight() < 8) {
+        if ((cmd.equals("ban") || cmd.equals("unban")) && adminRank.getWeight() < 11) {
             ChatUtil.sendMessage(admin, "<red>Нужен ранг MODER+");
             return true;
         }
