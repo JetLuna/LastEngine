@@ -5,7 +5,7 @@ import net.jetluna.api.util.ChatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
-import org.bukkit.Nameable; // ВАЖНО: без этого импорта будет ошибка Nameable
+import org.bukkit.Nameable;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -27,10 +27,12 @@ public class PetManager {
         pet.setInvulnerable(true);
         pet.setSilent(true);
 
-    // Теперь Nameable будет распознаваться корректно
+        // !!! ФИКС ЗАСТЫВШИХ ПИТОМЦЕВ !!!
+        // Запрещаем серверу сохранять эту сущность в файлы мира при выходе/рестарте
+        pet.setPersistent(false);
+
         if (pet instanceof Nameable) {
             pet.setCustomNameVisible(true);
-            // Используем parseLegacy, так как setCustomName ждет String, а не Component
             String formattedName = ChatUtil.parseLegacy("&eПитомец &7" + player.getName());
             ((Nameable) pet).setCustomName(formattedName);
         }
@@ -57,6 +59,10 @@ public class PetManager {
             ((Snowman) pet).setDerp(false);
         }
 
+        if (pet instanceof Bat) {
+            ((Bat) pet).setAwake(true);
+        }
+
         activePets.put(player.getUniqueId(), new ActivePet(pet, type));
     }
 
@@ -81,32 +87,57 @@ public class PetManager {
                     continue;
                 }
 
-                if (!player.getWorld().equals(pet.getWorld()) || player.getLocation().distanceSquared(pet.getLocation()) > 150) {
+                if (pet instanceof Bat) {
+                    ((Bat) pet).setAwake(true);
+                }
+
+                Location pLoc = player.getLocation();
+                Location eLoc = pet.getLocation();
+
+                // !!! ФИКС ПОЛЕТА !!!
+                // Считаем дистанцию ТОЛЬКО по горизонтали (X и Z). Игнорируем высоту.
+                double dist2D = Math.sqrt(Math.pow(pLoc.getX() - eLoc.getX(), 2) + Math.pow(pLoc.getZ() - eLoc.getZ(), 2));
+
+                // Телепортируем, если игрок улетел по плоскости дальше 20 блоков или сменил мир
+                if (!player.getWorld().equals(pet.getWorld()) || dist2D > 20.0) {
                     pet.teleport(player);
                     continue;
                 }
 
-                double dist = player.getLocation().distance(pet.getLocation());
-                if (dist > 2.5) {
-                    Vector dir = player.getLocation().toVector().subtract(pet.getLocation().toVector()).normalize();
-                    dir.multiply(0.35);
+                boolean isFlyingPet = (pet.getType() == EntityType.BAT || pet.getType() == EntityType.PARROT);
 
-                    if (pet.getType() == EntityType.BAT || pet.getType() == EntityType.PARROT) {
-                        dir.setY((player.getLocation().getY() + 1.5 - pet.getLocation().getY()) * 0.2);
+                if (dist2D > 2.5) {
+                    Vector dir;
+                    if (isFlyingPet) {
+                        // Летающие питомцы целятся игроку в плечо
+                        dir = pLoc.clone().add(0, 1.5, 0).toVector().subtract(eLoc.toVector()).normalize().multiply(0.35);
                     } else {
-                        if (pet.isOnGround() && dir.getY() > 0.5) dir.setY(0.4);
-                        else dir.setY(pet.getVelocity().getY());
+                        // Наземные питомцы создают вектор только по плоскости
+                        dir = new Vector(pLoc.getX() - eLoc.getX(), 0, pLoc.getZ() - eLoc.getZ()).normalize().multiply(0.35);
+
+                        if (pet.isOnGround()) {
+                            // Сканируем блок перед питомцем
+                            Location front = eLoc.clone().add(dir.clone().normalize().multiply(0.8));
+                            if (front.add(0, 0.5, 0).getBlock().getType().isSolid()) {
+                                dir.setY(0.5); // Автопрыжок
+                            } else {
+                                dir.setY(pet.getVelocity().getY()); // Обычный бег
+                            }
+                        } else {
+                            dir.setY(pet.getVelocity().getY()); // Падение
+                        }
                     }
 
                     pet.setVelocity(dir);
 
+                    // Голова питомца всегда смотрит по направлению движения
                     Location loc = pet.getLocation();
-                    loc.setDirection(dir);
+                    loc.setDirection(new Vector(dir.getX(), isFlyingPet ? dir.getY() : 0, dir.getZ()));
                     pet.setRotation(loc.getYaw(), loc.getPitch());
                 }
 
                 if (ticks % 15 == 0) {
-                    Item drop = pet.getWorld().dropItem(pet.getLocation().add(0, 0.5, 0), new ItemStack(activePet.type.getDropItem()));
+                    Item drop = pet.getWorld().dropItem(eLoc.clone().add(0, 0.5, 0), new ItemStack(activePet.type.getDropItem()));
                     drop.setPickupDelay(32767);
                     drop.setVelocity(new Vector(Math.random() - 0.5, 0.3, Math.random() - 0.5).multiply(0.3));
 

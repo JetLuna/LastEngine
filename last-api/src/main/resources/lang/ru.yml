@@ -46,6 +46,12 @@ lobby:
           - "<gray>Нажми ПКМ, чтобы"
           - "<green>показать <gray>всех игроков."
 
+    parkour:
+      name: "&aСлучайный Паркур"
+      lore:
+          - "&7Нажмите ПКМ, чтобы"
+          - "&7начать испытание!"
+
   npc:
     bedwars:
       name: "<red><bold>BedWars"

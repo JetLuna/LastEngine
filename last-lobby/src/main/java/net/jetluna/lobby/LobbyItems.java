@@ -25,7 +25,6 @@ public class LobbyItems {
                 .setLore(LanguageManager.getList(player, "lobby.items.profile.lore"))
                 .build();
 
-        // Ставим скин игрока на голову
         SkullMeta meta = (SkullMeta) profile.getItemMeta();
         meta.setOwningPlayer(player);
         profile.setItemMeta(meta);
@@ -33,12 +32,17 @@ public class LobbyItems {
         player.getInventory().setItem(0, profile);
 
         // 3. КРАСИТЕЛЬ (Скрытие игроков) - Слот 8 (Справа)
-        // По умолчанию выдаем Лаймовый (Всех видно)
         ItemStack visibility = new ItemBuilder(Material.LIME_DYE)
                 .setName(LanguageManager.getString(player, "lobby.items.visibility.enabled.name"))
                 .setLore(LanguageManager.getList(player, "lobby.items.visibility.enabled.lore"))
                 .build();
-
         player.getInventory().setItem(8, visibility);
+
+        // 4. СЛИЗЬ (Паркур) - Слот 7 (Индекс 6)
+        ItemStack parkour = new ItemBuilder(Material.SLIME_BALL)
+                .setName(LanguageManager.getString(player, "lobby.items.parkour.name"))
+                .setLore(LanguageManager.getList(player, "lobby.items.parkour.lore"))
+                .build();
+        player.getInventory().setItem(6, parkour);
     }
 }

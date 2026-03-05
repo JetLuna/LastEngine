@@ -1,5 +1,6 @@
 package net.jetluna.lobby.gui;
 
+import net.jetluna.api.parkour.ParkourManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
@@ -45,8 +46,15 @@ public class SettingsGui implements Listener {
                 .setGlow(chatVisible)
                 .build());
 
+        boolean inParkour = net.jetluna.api.parkour.ParkourManager.isInParkour(player);
+
         // 3. Двойной Прыжок
-        if (rank.getWeight() >= 2) {
+        if (inParkour) {
+            gui.setItem(14, new ItemBuilder(Material.BARRIER)
+                    .setName("&cДвойной прыжок")
+                    .setLore("&7Способности отключены", "&cво время паркура!")
+                    .build());
+        } else if (rank.getWeight() >= 2) {
             boolean djEnabled = !doubleJumpDisabled.contains(player.getUniqueId());
             gui.setItem(14, new ItemBuilder(Material.SLIME_BALL)
                     .setName(djEnabled ? "&aДвойной прыжок: ВКЛ" : "&cДвойной прыжок: ВЫКЛ")
@@ -61,7 +69,12 @@ public class SettingsGui implements Listener {
         }
 
         // 4. Флай
-        if (rank.getWeight() >= 3) {
+        if (inParkour) {
+            gui.setItem(16, new ItemBuilder(Material.BARRIER)
+                    .setName("&cФлай")
+                    .setLore("&7Способности отключены", "&cво время паркура!")
+                    .build());
+        } else if (rank.getWeight() >= 3) {
             boolean flyEnabled = !flyDisabled.contains(player.getUniqueId());
             gui.setItem(16, new ItemBuilder(Material.FEATHER)
                     .setName(flyEnabled ? "&aФлай: ВКЛ" : "&cФлай: ВЫКЛ")
@@ -94,22 +107,28 @@ public class SettingsGui implements Listener {
             player.performCommand("lobby:hideplayers");
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             open(player);
-        }
-        if (slot == 12) {
+        } else if (slot == 12) {
             if (chatHidden.contains(player.getUniqueId())) chatHidden.remove(player.getUniqueId());
             else chatHidden.add(player.getUniqueId());
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             open(player);
-        }
-        if (slot == 14) {
-            toggleDoubleJump(player); // Используем метод
+        } else if (slot == 14) {
+            if (net.jetluna.api.parkour.ParkourManager.isInParkour(player)) {
+                ChatUtil.sendMessage(player, "&cВо время паркура способности недоступны!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+                return;
+            }
+            toggleDoubleJump(player);
             open(player);
-        }
-        if (slot == 16) {
-            toggleFly(player); // Используем метод
+        } else if (slot == 16) {
+            if (net.jetluna.api.parkour.ParkourManager.isInParkour(player)) {
+                ChatUtil.sendMessage(player, "&cВо время паркура способности недоступны!");
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
+                return;
+            }
+            toggleFly(player);
             open(player);
-        }
-        if (slot == 31) {
+        } else if (slot == 31) {
             LobbyGui.openProfile(player);
         }
     }
@@ -125,17 +144,14 @@ public class SettingsGui implements Listener {
         }
 
         if (flyDisabled.contains(player.getUniqueId())) {
-            // Включаем Флай
             flyDisabled.remove(player.getUniqueId());
             ChatUtil.sendMessage(player, "&aФлай включен!");
 
-            // Автоматически ВЫКЛЮЧАЕМ Двойной прыжок, если он был включен
             if (!doubleJumpDisabled.contains(player.getUniqueId())) {
                 doubleJumpDisabled.add(player.getUniqueId());
                 ChatUtil.sendMessage(player, "&eДвойной прыжок был автоматически выключен.");
             }
         } else {
-            // Выключаем Флай
             flyDisabled.add(player.getUniqueId());
             ChatUtil.sendMessage(player, "&cФлай выключен!");
         }
@@ -152,17 +168,14 @@ public class SettingsGui implements Listener {
         }
 
         if (doubleJumpDisabled.contains(player.getUniqueId())) {
-            // Включаем Двойной прыжок
             doubleJumpDisabled.remove(player.getUniqueId());
             ChatUtil.sendMessage(player, "&aДвойной прыжок включен!");
 
-            // Автоматически ВЫКЛЮЧАЕМ Флай, если он был включен
             if (!flyDisabled.contains(player.getUniqueId())) {
                 flyDisabled.add(player.getUniqueId());
                 ChatUtil.sendMessage(player, "&eФлай был автоматически выключен.");
             }
         } else {
-            // Выключаем Двойной прыжок
             doubleJumpDisabled.add(player.getUniqueId());
             ChatUtil.sendMessage(player, "&cДвойной прыжок выключен!");
         }

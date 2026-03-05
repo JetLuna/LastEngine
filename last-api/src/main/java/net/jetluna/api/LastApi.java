@@ -71,6 +71,13 @@ public class LastApi extends JavaPlugin {
 
         PetManager.startTask(); // Запускаем цикл движения питомцев
         Bukkit.getPluginManager().registerEvents(new PetsGui(), this);
+
+        net.jetluna.api.gadget.GadgetManager.init(this);
+        Bukkit.getPluginManager().registerEvents(new net.jetluna.api.gadget.GadgetsGui(), this);
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.api.cosmetic.CosmeticListener(), this);
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.api.parkour.ParkourManager(), this);
     }
 
     public static LastApi getInstance() { return instance; }

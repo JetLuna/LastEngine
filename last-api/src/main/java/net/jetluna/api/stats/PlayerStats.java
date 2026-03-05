@@ -1,5 +1,7 @@
 package net.jetluna.api.stats;
 
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ public class PlayerStats {
     private int emeralds;
     private long lastRewardTime;
     private int rewardDay;
+    @Setter
     private int level;
     private int exp;
 
@@ -48,7 +51,7 @@ public class PlayerStats {
     public int getRewardDay() { return rewardDay; }
     public void setRewardDay(int day) { this.rewardDay = day; }
     public int getLevel() { return level; }
-    public void setLevel(int level) { this.level = level; }
+
     public int getExp() { return exp; }
     public void setExp(int exp) { this.exp = exp; }
     private List<String> ownedPets = new ArrayList<>(); // Список названий купленных PetType
@@ -58,4 +61,24 @@ public class PlayerStats {
     public List<String> getOwnedPets() { return ownedPets; }
     public String getActivePet() { return activePet; }
     public void setActivePet(String activePet) { this.activePet = activePet; }
+
+    private List<String> ownedGadgets = new ArrayList<>();
+    private String activeGadget = "";
+
+    // Методы для получения и записи гаджетов
+    public java.util.List<String> getOwnedGadgets() {
+        return ownedGadgets;
+    }
+
+    public void setOwnedGadgets(java.util.List<String> ownedGadgets) {
+        this.ownedGadgets = ownedGadgets;
+    }
+
+    public String getActiveGadget() {
+        return activeGadget;
+    }
+
+    public void setActiveGadget(String activeGadget) {
+        this.activeGadget = activeGadget;
+    }
 }

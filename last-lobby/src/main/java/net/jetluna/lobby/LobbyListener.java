@@ -56,14 +56,31 @@ public class LobbyListener implements Listener {
                 .replace("%suffix%", suffix)
                 .replace("&", "§");
 
-        // ПЕРЕДАЕМ СООБЩЕНИЕ НАПРЯМУЮ СЕРВЕРУ (Он сам разошлет его ровно 1 раз)
+        // ПЕРЕДАЕМ СООБЩЕНИЕ НАПРЯМУЮ СЕРВЕРУ
         event.setJoinMessage(joinMsg);
 
         // Включаем полет/прыжки если надо
         SettingsGui.updateFlight(player);
 
-        // Оповещение стаффа (если игрок Junior+)
+        // Оповещение стаффа
         net.jetluna.api.staff.StaffNotifier.notifyJoin(player, suffix);
+
+        // !!! СПАВН ПИТОМЦА ПРИ ВХОДЕ !!!
+        if (stats != null && stats.getActivePet() != null && !stats.getActivePet().isEmpty()) {
+            try {
+                // Получаем тип питомца из базы данных
+                net.jetluna.api.pet.PetType type = net.jetluna.api.pet.PetType.valueOf(stats.getActivePet());
+
+                // Делаем задержку полсекунды, чтобы мир вокруг игрока прогрузился
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (player.isOnline()) { // Проверяем, не вышел ли игрок за эти полсекунды
+                        net.jetluna.api.pet.PetManager.spawnPet(player, type);
+                    }
+                }, 10L);
+            } catch (IllegalArgumentException ignored) {
+                // Если в базе записан старый/удаленный тип питомца, ничего не делаем
+            }
+        }
     }
 
     @EventHandler
@@ -219,5 +236,16 @@ public class LobbyListener implements Listener {
     public void onFood(org.bukkit.event.entity.FoodLevelChangeEvent event) {
         event.setCancelled(true);
         event.setFoodLevel(20);
+    }
+
+    // Отключаем создание снега питомцами-снеговиками
+    @EventHandler
+    public void onEntityBlockForm(org.bukkit.event.block.EntityBlockFormEvent event) {
+        if (event.getEntity() instanceof org.bukkit.entity.Snowman) {
+            // Если это наш питомец (проверяем по имени), отменяем спавн снега
+            if (event.getEntity().getCustomName() != null && event.getEntity().getCustomName().contains("Питомец")) {
+                event.setCancelled(true);
+            }
+        }
     }
 }
