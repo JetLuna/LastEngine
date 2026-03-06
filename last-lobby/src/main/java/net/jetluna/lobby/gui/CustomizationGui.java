@@ -58,7 +58,6 @@ public class CustomizationGui implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals("lobby.items.profile.name")) return;
         if (!event.getView().getTitle().equals("Кастомизация")) return;
         event.setCancelled(true);
 

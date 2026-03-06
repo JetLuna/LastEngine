@@ -15,6 +15,7 @@ public class LobbyPlugin extends JavaPlugin {
 
     private static LobbyPlugin instance;
     private NpcManager npcManager;
+    private FlyingPigManager flyingPigManager;
 
     @Override
     public void onEnable() {
@@ -55,11 +56,15 @@ public class LobbyPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.JoinerGui(), this);
 
         getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.SuffixGui(), this);
+
+        this.flyingPigManager = new FlyingPigManager(this);
+        getServer().getPluginManager().registerEvents(this.flyingPigManager, this);
     }
 
     @Override
     public void onDisable() {
         if (npcManager != null) npcManager.removeAll();
+        if (flyingPigManager != null) flyingPigManager.clearAll();
     }
 
     private void spawnLobbyNpcs() {

@@ -113,25 +113,37 @@ public class LobbyGui implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
 
-        String title = ChatUtil.strip(event.getView().getTitle());
+        // 1. Получаем все переводы названий
+        String currentTitle = ChatUtil.strip(event.getView().getTitle());
         String selectorTitle = ChatUtil.strip(LanguageManager.getString(player, "lobby.inventory.title"));
         String profileTitle = ChatUtil.strip(LanguageManager.getString(player, "lobby.profile_gui.title"));
 
-        if (title.equals(selectorTitle) || title.equals(profileTitle)) {
-            event.setCancelled(true);
+        // 2. ГЛАВНЫЙ ЗАМОК: Если это не Компас и не Профиль — выходим! Шпионов больше нет.
+        if (!currentTitle.equals(selectorTitle) && !currentTitle.equals(profileTitle)) {
+            return;
         }
 
-        // Обработка клика в профиле
-        if (title.equals(profileTitle)) {
-            if (event.getSlot() == 10) { // Если клик по Настройкам (10 слот)
+        // 3. Если мы здесь, значит это одно из наших меню. Отменяем возможность красть вещи:
+        event.setCancelled(true);
+        if (event.getCurrentItem() == null) return;
+
+        int slot = event.getSlot();
+
+        // 4. ОБРАБОТКА МЕНЮ ПРОФИЛЯ
+        if (currentTitle.equals(profileTitle)) {
+            if (slot == 10) { // Настройки
                 SettingsGui.open(player);
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+            } else if (slot == 16) { // Кастомизация (Теперь она надежно заперта внутри Профиля!)
+                net.jetluna.lobby.gui.CustomizationGui.open(player);
+                player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
             }
         }
 
-        if (event.getSlot() == 16) { // Кастомизация
-            net.jetluna.lobby.gui.CustomizationGui.open(player);
-            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
+        // 5. ОБРАБОТКА МЕНЮ КОМПАСА (Выбор режима)
+        else if (currentTitle.equals(selectorTitle)) {
+            // В будущем тут можно будет добавить телепортацию:
+            // if (slot == 11) { player.chat("/server bedwars"); }
         }
     }
 }
