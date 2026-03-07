@@ -1,5 +1,6 @@
 package net.jetluna.lobby;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -37,9 +38,7 @@ public class FlyingPigManager implements Listener {
         this.tntTag = new NamespacedKey(plugin, "fake_tnt");
 
         cleanupOldPigs();
-
         plugin.getServer().getScheduler().runTaskLater(plugin, this::spawnPig, 60L);
-
         startFlightControlTask();
         scheduleNextBomb();
     }
@@ -47,8 +46,6 @@ public class FlyingPigManager implements Listener {
     public void cleanupOldPigs() {
         Location spawn = plugin.getLobbySpawn();
         if (spawn == null || spawn.getWorld() == null) return;
-
-        // ПРИНУДИТЕЛЬНО ГРУЗИМ ЧАНК, чтобы Bukkit точно увидел старых мобов!
         spawn.getChunk().load();
 
         for (Entity entity : spawn.getWorld().getEntities()) {
@@ -58,7 +55,6 @@ public class FlyingPigManager implements Listener {
         }
     }
 
-    // НОВЫЙ МЕТОД ДЛЯ УДАЛЕНИЯ ПРИ РЕСТАРТЕ
     public void clearAll() {
         if (bomberPig != null && !bomberPig.isDead()) bomberPig.remove();
         if (batVehicle != null && !batVehicle.isDead()) batVehicle.remove();
@@ -71,7 +67,6 @@ public class FlyingPigManager implements Listener {
 
         spawn.setY(spawn.getY() + 15);
 
-        // Невидимая мышь (Наш двигатель)
         batVehicle = (Bat) spawn.getWorld().spawnEntity(spawn, EntityType.BAT);
         batVehicle.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1, false, false));
         batVehicle.setSilent(true);
@@ -79,10 +74,13 @@ public class FlyingPigManager implements Listener {
         batVehicle.setRemoveWhenFarAway(false);
         batVehicle.getPersistentDataContainer().set(pigTag, PersistentDataType.BYTE, (byte) 1);
 
-        // Сама Свинья
         bomberPig = (Pig) spawn.getWorld().spawnEntity(spawn, EntityType.PIG);
         bomberPig.setInvulnerable(true);
-        bomberPig.setCustomName("§d§lСвин-Бомбардировщик");
+
+        // Берем имя с амперсандами и красим!
+        String rawName = net.jetluna.api.lang.LanguageManager.getString(null, "lobby.pig.name");
+        bomberPig.setCustomName(color(rawName));
+
         bomberPig.setCustomNameVisible(true);
         bomberPig.setRemoveWhenFarAway(false);
         bomberPig.getPersistentDataContainer().set(pigTag, PersistentDataType.BYTE, (byte) 1);
@@ -141,7 +139,7 @@ public class FlyingPigManager implements Listener {
                 tnt.setFuseTicks(60);
                 tnt.getPersistentDataContainer().set(tntTag, PersistentDataType.BYTE, (byte) 1);
 
-                world.playSound(dropLoc, Sound.ENTITY_TNT_PRIMED, 1f, 1f);
+                world.playSound(dropLoc, Sound.ENTITY_CREEPER_PRIMED, 1f, 1f);
             }
         }.runTaskLater(plugin, delayTicks);
     }
@@ -153,9 +151,9 @@ public class FlyingPigManager implements Listener {
             if (tnt.getPersistentDataContainer().has(tntTag, PersistentDataType.BYTE)) {
                 event.blockList().clear();
 
-                // --- СВИНЬЯ ОРЕТ В ЧАТ ---
                 for (org.bukkit.entity.Player p : tnt.getWorld().getPlayers()) {
-                    p.sendMessage("§d§lСвин-Бомбардировщик §8» §c§lБАБАХ!!!");
+                    String rawBoom = net.jetluna.api.lang.LanguageManager.getString(p, "lobby.pig.boom");
+                    p.sendMessage(color(rawBoom));
                 }
             }
         }
@@ -169,5 +167,9 @@ public class FlyingPigManager implements Listener {
                 event.setCancelled(true);
             }
         }
+    }
+
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
     }
 }

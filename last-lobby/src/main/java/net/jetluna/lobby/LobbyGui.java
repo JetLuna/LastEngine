@@ -7,7 +7,7 @@ import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
-import net.jetluna.lobby.gui.SettingsGui; // !!! ВАЖНЫЙ ИМПОРТ
+import net.jetluna.lobby.gui.SettingsGui;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -56,14 +56,14 @@ public class LobbyGui implements Listener {
         if (stats == null) return;
 
         Rank rank = RankManager.getRank(player);
-        String rankDisplay = (rank.getWeight() == 1) ? "<gray>Player" : rank.getPrefix();
+        String rankDisplay = (rank.getWeight() == 1) ? "§7Player" : color(rank.getPrefix());
         String progressBar = getProgressBar(stats.getExp(), 1000);
 
         List<String> lore = LanguageManager.getList(player, "lobby.profile_gui.info.lore");
         List<String> finalLore = new ArrayList<>();
 
         for (String line : lore) {
-            finalLore.add(line
+            finalLore.add(color(line)
                     .replace("%rank%", rankDisplay)
                     .replace("%level%", String.valueOf(stats.getLevel()))
                     .replace("%progressbar%", progressBar)
@@ -76,34 +76,40 @@ public class LobbyGui implements Listener {
 
         ItemStack info = new ItemBuilder(Material.PLAYER_HEAD)
                 .setOwner(player.getName())
-                .setName(LanguageManager.getString(player, "lobby.profile_gui.info.name"))
+                .setName(color(LanguageManager.getString(player, "lobby.profile_gui.info.name")))
                 .setLore(finalLore)
                 .build();
         gui.setItem(13, info);
 
-        // !!! КНОПКА НАСТРОЕК (Я ЕЕ ДОБАВИЛ) !!!
-        ItemStack settings = new ItemBuilder(Material.COMPARATOR)
-                .setName("&eНастройки")
-                .setLore("&7Управление чатом,", "&7видимостью и эффектами.")
-                .build();
-        gui.setItem(10, settings);
+        // --- АДАПТИРОВАННАЯ КНОПКА НАСТРОЕК ---
+        gui.setItem(10, new ItemBuilder(Material.COMPARATOR)
+                .setName(color(LanguageManager.getString(player, "lobby.profile_gui.settings.name")))
+                .setLore(colorList(player, "lobby.profile_gui.settings.lore"))
+                .build());
+
+        // --- АДАПТИРОВАННАЯ КНОПКА КАСТОМИЗАЦИИ ---
+        gui.setItem(16, new ItemBuilder(Material.LEATHER_CHESTPLATE)
+                .setName(color(LanguageManager.getString(player, "lobby.profile_gui.cosmetics.name")))
+                .setLore(colorList(player, "lobby.profile_gui.cosmetics.lore"))
+                .build());
 
         player.openInventory(gui);
 
-        // !!! КНОПКА КАСТОМИЗАЦИИ !!!
-        ItemStack customization = new ItemBuilder(Material.LEATHER_CHESTPLATE)
-                .setName("&dКастомизация")
-                .setLore("&7Выделитесь из толпы!", "&7Сообщения при входе, гаджеты и партиклы.")
-                .build();
-        gui.setItem(16, customization);
+        // --- КНОПКА ЯЗЫКА (Текстура планеты Земля) ---
+        gui.setItem(22, net.jetluna.lobby.gui.LanguageGui.getHeadItem(
+                "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2Y0MDk0MmYzNjRmNmNiY2VmZmNmMTE1MTc5NjQxMDI4NmE0OGIxYWViYTc3MjQzZTIxODAyNmMwOWNkMSJ9fX0=",
+                color(LanguageManager.getString(player, "lobby.profile_gui.language.name")),
+                colorList(player, "lobby.profile_gui.language.lore")
+        ));
     }
 
     private static String getProgressBar(int current, int max) {
         int totalBars = 10;
         int filledBars = (int) ((double) current / max * totalBars);
-        StringBuilder sb = new StringBuilder("<green>");
+        // Используем § вместо тегов <green>, чтобы Bukkit понимал цвета в Lore
+        StringBuilder sb = new StringBuilder("§a");
         for (int i = 0; i < filledBars; i++) sb.append("■");
-        sb.append("<gray>");
+        sb.append("§7");
         for (int i = filledBars; i < totalBars; i++) sb.append("■");
         return sb.toString();
     }
@@ -113,37 +119,51 @@ public class LobbyGui implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
 
-        // 1. Получаем все переводы названий
         String currentTitle = ChatUtil.strip(event.getView().getTitle());
         String selectorTitle = ChatUtil.strip(LanguageManager.getString(player, "lobby.inventory.title"));
         String profileTitle = ChatUtil.strip(LanguageManager.getString(player, "lobby.profile_gui.title"));
 
-        // 2. ГЛАВНЫЙ ЗАМОК: Если это не Компас и не Профиль — выходим! Шпионов больше нет.
         if (!currentTitle.equals(selectorTitle) && !currentTitle.equals(profileTitle)) {
             return;
         }
 
-        // 3. Если мы здесь, значит это одно из наших меню. Отменяем возможность красть вещи:
         event.setCancelled(true);
         if (event.getCurrentItem() == null) return;
 
         int slot = event.getSlot();
 
-        // 4. ОБРАБОТКА МЕНЮ ПРОФИЛЯ
         if (currentTitle.equals(profileTitle)) {
-            if (slot == 10) { // Настройки
+            if (slot == 10) {
                 SettingsGui.open(player);
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            } else if (slot == 16) { // Кастомизация (Теперь она надежно заперта внутри Профиля!)
+            } else if (slot == 16) {
                 net.jetluna.lobby.gui.CustomizationGui.open(player);
-                player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             }
         }
 
-        // 5. ОБРАБОТКА МЕНЮ КОМПАСА (Выбор режима)
-        else if (currentTitle.equals(selectorTitle)) {
-            // В будущем тут можно будет добавить телепортацию:
-            // if (slot == 11) { player.chat("/server bedwars"); }
+        if (currentTitle.equals(profileTitle)) {
+            if (slot == 10) {
+                SettingsGui.open(player);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+            } else if (slot == 16) {
+                net.jetluna.lobby.gui.CustomizationGui.open(player);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+            } else if (slot == 22) { // <--- НАШ НОВЫЙ СЛОТ
+                net.jetluna.lobby.gui.LanguageGui.open(player);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+            }
         }
+    }
+
+    private static String color(String text) {
+        return text == null ? "" : org.bukkit.ChatColor.translateAlternateColorCodes('&', text);
+    }
+
+    private static List<String> colorList(Player p, String key) {
+        List<String> list = LanguageManager.getList(p, key);
+        if (list == null) return new ArrayList<>();
+        list.replaceAll(s -> org.bukkit.ChatColor.translateAlternateColorCodes('&', s));
+        return list;
     }
 }

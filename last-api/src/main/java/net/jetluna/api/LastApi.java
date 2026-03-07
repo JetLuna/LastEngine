@@ -78,6 +78,8 @@ public class LastApi extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new net.jetluna.api.cosmetic.CosmeticListener(), this);
 
         getServer().getPluginManager().registerEvents(new net.jetluna.api.parkour.ParkourManager(), this);
+
+        if (getCommand("lang") != null) getCommand("lang").setExecutor(new net.jetluna.api.lang.LangCommand());
     }
 
     public static LastApi getInstance() { return instance; }

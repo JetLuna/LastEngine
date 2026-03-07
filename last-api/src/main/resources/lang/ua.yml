@@ -1,192 +1,810 @@
 prefix:
-  server: "<gradient:aqua:blue>LastEngine <dark_gray>»"
-  error: "<red>Ошибка <dark_gray>»"
+  server: "&b&lLastEngine &8»"
+  error: "&cПомилка &8»"
 
 general:
-  no_permission: "%prefix_error% <red>У вас нет прав!"
-  lang_changed: "%prefix_server% <green>Язык изменен на Русский!"
-  player_only: "%prefix_error% <red>Только для игроков."
-  player_not_found: "%prefix_error% <red>Игрок не найден."
+  no_permission: "&cПомилка &8» &cУ вас немає прав!"
+  lang_changed: "&b&lLastEngine &8» &aМову змінено на Українську!"
+  player_only: "&cПомилка &8» &cТільки для гравців."
+  player_not_found: "&cПомилка &8» &cГравця не знайдено."
 
 lobby:
   board:
-    title: "<gradient:gold:yellow><bold>LAST ENGINE"
-    nickname: "<gray>Никнейм:"
-    rank: "<gray>Ранг:"
-    online: "<blue><bold>Онлайн:"
-    footer: "<yellow>play.lastengine.net"
-  tab:
-    header: "\n<gradient:aqua:blue><bold>LAST ENGINE NETWORK</bold></gradient>\n<gray>Добро пожаловать, %player%!\n"
-    footer: "\n<gray>Онлайн: <green>%online%\n\n<yellow>Сайт: <white>www.lastengine.net\n"
+    title: "&6&lLAST ENGINE"
+    info_title: "&2Інформація:"
+    status: " &fСтатус: %rank%"
+    guild: " &fГільдія: &7N/A"
+    emeralds: " &fСмарагди: &a%emeralds%"
+    level_title: "&2Серверний рівень:"
+    level: " &fРівень: &a%level%&2*"
+    progress: " &7↳ %progress% &a%percent%%"
+    server_title: "&2Сервер:"
+    online: " &fЗагальний онлайн: &a%online%"
+    lobby: " &fЛобі: &a#1"
+    footer: "&aplay.lastengine.net"
 
-  # ПРЕДМЕТЫ В ИНВЕНТАРЕ (Хотбар)
+  tab:
+    header: "\n&a&lLAST &2&lENGINE\n&fПривілеї, кейси та\n&fбагато іншого:\n&awww.lastengine.net\n\n&7Список гравців:\n"
+    footer: "\n&fЗагальний онлайн ➔ &a%online%\n\n&7Ви знаходитесь на сервері &aЛобі-1\n"
+
+  customization_gui:
+    title: "Кастомізація"
+    joiners:
+      name: "&aПовідомлення при вході"
+      lore:
+        - "&7Здивуйте всіх своєю"
+        - "&7появою на сервері!"
+        - ""
+        - "&eНатисніть, щоб вибрати"
+    suffixes:
+      name: "&bСуфікси"
+      lore:
+        - "&7Круті титули поруч"
+        - "&7із вашим нікнеймом."
+        - ""
+        - "&eНатисніть, щоб вибрати"
+    effects:
+      name: "&dВізуальні ефекти"
+      lore:
+        - "&7Гарні частинки, що"
+        - "&7літатимуть навколо вас."
+        - ""
+        - "&eНатисніть, щоб вибрати"
+    pets:
+      name: "&6Улюбленці"
+      lore:
+        - "&7Вірні супутники, які"
+        - "&7бігатимуть за вами."
+        - ""
+        - "&eНатисніть, щоб вибрати"
+    gadgets:
+      name: "&cГаджети"
+      lore:
+        - "&7Іграшки для шалених"
+        - "&7розваг у лобі."
+        - ""
+        - "&eНатисніть, щоб вибрати"
+    banners:
+      name: "&3Банери"
+      lore:
+        - "&7Епічні прапори та банери,"
+        - "&7які носяться за спиною."
+        - ""
+        - "&eНатисніть, щоб вибрати"
+    back: "&cНазад"
+
+  joiner_gui:
+    categories_title: "Категорії Джоїнерів"
+    list_title: "Джоїнери: %category%"
+    cat_classic: "&eКласика"
+    cat_memes: "&aМеми"
+    cat_dark: "&4Дарк"
+    back: "&cНазад"
+    format: "&7Формат: &f%format%"
+    selected: "&aОБРАНО"
+    click_to_select: "&eНатисніть, щоб вибрати"
+    price: "&cЦіна: &a%price% ❇"
+    click_to_buy: "&7Натисніть, щоб придбати"
+    messages:
+      selected: "&b&lLastEngine &8» &aВи обрали повідомлення: &b%name%"
+      purchased: "&b&lLastEngine &8» &aУспішна покупка! Ви придбали: &b%name%"
+      not_enough: "&cПомилка &8» &cУ вас недостатньо Смарагдів! Потрібно: &a%price% ❇"
+    list:
+      default:
+        name: "Стандарт"
+        format: "%prefix%%player%%suffix% &eприєднався до гри"
+      vip:
+        name: "Мажор"
+        format: "%prefix%%player%%suffix% &6вшанував нас своєю присутністю!"
+      meme_father:
+        name: "Здоров, батько"
+        format: "%prefix%%player%%suffix% &eзалетів на сервер. Здоров, батько!"
+      meme_clown:
+        name: "Цирк приїхав"
+        format: "%prefix%%player%%suffix% &eвийшов на арену!"
+      dark_ghoul:
+        name: "1000-7"
+        format: "%prefix%%player%%suffix% &4вийшов із тіні. 1000-7..."
+      dark_berserk:
+        name: "Чорний мечник"
+        format: "%prefix%%player%%suffix% &8оголив Вбивцю Драконів."
+
+  settings_gui:
+    title: "Налаштування"
+    visibility:
+      "on": "&aГравці: Видимі"
+      "off": "&cГравці: Приховані"
+      lore:
+        - "&7Натисніть, щоб перемкнути"
+    chat:
+      "on": "&aЧат: Видимий"
+      "off": "&cЧат: Прихований"
+      lore:
+        - "&7Натисніть, щоб перемкнути"
+    doublejump:
+      disabled_parkour: "&cПодвійний стрибок"
+      disabled_parkour_lore:
+        - "&7Здібності вимкнені"
+        - "&cпід час паркуру!"
+      "on": "&aПодвійний стрибок: УВІМК"
+      "off": "&cПодвійний стрибок: ВИМК"
+      lore:
+        - "&7Натисніть, щоб перемкнути"
+        - "&eПотрібно: GO"
+      unavailable: "&cПодвійний стрибок"
+      unavailable_lore:
+        - "&7Недоступно"
+        - "&eПридбайте привілей GO"
+    fly:
+      disabled_parkour: "&cПоліт"
+      disabled_parkour_lore:
+        - "&7Здібності вимкнені"
+        - "&cпід час паркуру!"
+      "on": "&aПоліт: УВІМК"
+      "off": "&cПоліт: ВИМК"
+      lore:
+        - "&7Натисніть, щоб перемкнути"
+        - "&bПотрібно: PLUS"
+      unavailable: "&cПоліт"
+      unavailable_lore:
+        - "&7Недоступно"
+        - "&bПридбайте привілей PLUS"
+    back: "&cНазад"
+    messages:
+      parkour_disabled: "&cПомилка &8» &cПід час паркуру здібності недоступні!"
+      fly_req: "&cПомилка &8» &cВам потрібен привілей PLUS!"
+      fly_on: "&b&lLastEngine &8» &aПоліт увімкнено!"
+      fly_off: "&b&lLastEngine &8» &cПоліт вимкнено!"
+      dj_auto_off: "&b&lLastEngine &8» &eПодвійний стрибок було автоматично вимкнено."
+      dj_req: "&cПомилка &8» &cВам потрібен привілей GO!"
+      dj_on: "&b&lLastEngine &8» &aПодвійний стрибок увімкнено!"
+      dj_off: "&b&lLastEngine &8» &cПодвійний стрибок вимкнено!"
+      fly_auto_off: "&b&lLastEngine &8» &eПоліт було автоматично вимкнено."
+
+  suffix_gui:
+    categories_title: "Категорії Суфіксів"
+    list_title: "Суфікси: %category%"
+    cat_titles: "&eТитули"
+    cat_memes: "&aМеми"
+    cat_anime: "&4Аніме"
+    back: "&cНазад"
+    format: "&7Відображення: &f%format%"
+    selected: "&aОБРАНО"
+    click_to_select: "&eНатисніть, щоб вибрати"
+    price: "&cЦіна: &a%price% ❇"
+    click_to_buy: "&7Натисніть, щоб придбати"
+    messages:
+      selected: "&b&lLastEngine &8» &aВи обрали суфікс: &b%name%"
+      purchased: "&b&lLastEngine &8» &aУспішна покупка! Ви придбали: &b%name%"
+      not_enough: "&cПомилка &8» &cНедостатньо Смарагдів! Потрібно: &a%price% ❇"
+    list:
+      default:
+        name: "Вимкнути"
+        format: ""
+      pro:
+        name: "Про"
+        format: " &8[&bPRO&8]"
+      veteran:
+        name: "Ветеран"
+        format: " &8[&6Ветеран&8]"
+      toxic:
+        name: "Токсик"
+        format: " &8[&dТоксик&8]"
+      clown:
+        name: "Клоун"
+        format: " &8[&7Клоун&8]"
+      hokage:
+        name: "Хокаге"
+        format: " &8[&eХокаге&8]"
+      ghoul:
+        name: "Гуль"
+        format: " &8[&4Ghoul&8]"
+
   items:
     navigator:
-      name: "<green><bold>Выбор режима"
+      name: "&a&lВибір режиму"
       lore:
-        - "<gray>Нажми ПКМ,"
-        - "<gray>чтобы открыть меню!"
-
+        - "&7Натисніть ПКМ,"
+        - "&7щоб відкрити меню!"
     profile:
-      name: "<yellow><bold>Профиль"
+      name: "&e&lПрофіль"
       lore:
-        - "<gray>Статистика и настройки"
+        - "&7Статистика та налаштування"
         - ""
-        - "<yellow>▶ Нажми, чтобы открыть"
-
+        - "&e▶ Натисніть, щоб відкрити"
     visibility:
       enabled:
-        name: "<green><bold>Игроки: ВИДНЫ"
+        name: "&a&lГравці: ВИДИМІ"
         lore:
-          - "<gray>Нажми ПКМ, чтобы"
-          - "<red>скрыть <gray>всех игроков."
+          - "&7Натисніть ПКМ, щоб"
+          - "&cприховати &7усіх гравців."
       disabled:
-        name: "<red><bold>Игроки: СКРЫТЫ"
+        name: "&c&lГравці: ПРИХОВАНІ"
         lore:
-          - "<gray>Нажми ПКМ, чтобы"
-          - "<green>показать <gray>всех игроков."
+          - "&7Натисніть ПКМ, щоб"
+          - "&aпоказати &7усіх гравців."
+    parkour:
+      name: "&a&lВипадковий Паркур"
+      lore:
+        - "&7Натисніть ПКМ, щоб"
+        - "&7почати випробування!"
 
   npc:
     bedwars:
-      name: "<red><bold>BedWars"
-      holo: "<gray>Онлайн: <green>%online%"
+      name: "&c&lBedWars"
+      holo: "&7Онлайн: &a%online%"
     vanilla:
-      name: "<green><bold>Vanilla"
-      holo: "<gray>Онлайн: <green>%online%"
+      name: "&a&lVanilla"
+      holo: "&7Онлайн: &a%online%"
     duels:
-      name: "<yellow><bold>Duels"
-      holo: "<gray>Скоро..."
+      name: "&e&lDuels"
+      holo: "&7Скоро..."
     rewards:
-      name: "<gold><bold>Награды"
-      holo: "<yellow>Нажми для получения"
+      name: "&6&lНагороди"
+      holo: "&eНатисніть для отримання"
 
   rewards:
-    title: "<black>Ежедневные награды"
-
+    title: "Щоденні нагороди"
     items:
-      # Формат названия дня
       day_name: "День %day%"
-
-      # Статусы
-      received_lore: "<gray>Уже получено!"
-
-      current_name: "<gold><bold>День %day%"
-      reward_header: "<yellow>Награда:"
-      click_to_claim: "<green>▶ НАЖМИ, ЧТОБЫ ЗАБРАТЬ!"
-
-      locked_name: "<red>День %day%"
-      wait_header: "<gray>Следующая награда через:"
-      wait_time: "<red>%time%"
-
-      future_name: "<gray>День %day%"
-      future_lore: "<gray>Будет доступно позже"
-
-      # Описание наград
-      reward_coins: "<gray>• <gold>%amount% монет"
-      reward_emeralds: "<gray>• <green>%amount% изумрудов"
-
+      received_lore: "&7Вже отримано!"
+      current_name: "&6&lДень %day%"
+      reward_header: "&eНагорода:"
+      click_to_claim: "&a▶ НАТИСНІТЬ, ЩОБ ЗАБРАТИ!"
+      locked_name: "&cДень %day%"
+      wait_header: "&7Наступна нагорода через:"
+      wait_time: "&c%time%"
+      future_name: "&7День %day%"
+      future_lore: "&7Буде доступно пізніше"
+      reward_coins: "&7• &6%amount% монет"
+      reward_emeralds: "&7• &a%amount% смарагдів"
     messages:
-      cooldown: "<red>Приходите позже! Осталось: %time%"
-      received: "<green>Вы получили награду за День %day%!"
-      received_coins: "<gold>+ %amount% монет"
-      received_emeralds: "<green>+ %amount% изумрудов"
+      cooldown: "&cПомилка &8» &cПриходьте пізніше! Залишилось: %time%"
+      received: "&b&lLastEngine &8» &aВи отримали нагороду за День %day%!"
+      received_coins: "&6+ %amount% монет"
+      received_emeralds: "&a+ %amount% смарагдів"
 
-  # МЕНЮ ПРОФИЛЯ (GUI)
   profile_gui:
-    title: "<black>Профиль игрока"
-
-    # Слот 13 - Голова (Основная инфа)
+    language:
+      name: "&bМова"
+      lore:
+        - "&7Вибір мови інтерфейсу сервера."
+        - ""
+        - "&e▶ Натисни, щоб змінити"
+    title: "Профіль гравця"
     info:
-      name: "<green>Информация о персонаже"
+      name: "&aІнформація про персонажа"
       lore:
-        - "<gray>Группа: %rank%"
-        - "<gray>Уровень: <green>%level%"
+        - "&7Група: %rank%"
+        - "&7Рівень: &a%level%"
         - ""
-        - "<gray>Прогресс уровня:"
-        - "%progressbar% <gray>(%exp% / %max_exp%)"
+        - "&7Прогрес рівня:"
+        - "%progressbar% &7(%exp% / %max_exp%)"
         - ""
-        - "<gray>Монеты: <gold>%coins% ⛃"
-        - "<gray>Изумруды: <green>%emeralds% 🟢"
+        - "&7Монети: &6%coins% ⛃"
+        - "&7Смарагди: &a%emeralds% 🟢"
         - ""
-        - "<yellow>▶ Нажми для статистики"
-
-    # Слот 29 - Настройки (Компаратор)
+        - "&e▶ Натисніть для статистики"
     settings:
-      name: "<red>Настройки аккаунта"
+      name: "&eНалаштування"
       lore:
-        - "<gray>Персонализация игрового"
-        - "<gray>процесса и интерфейса."
+        - "&7Керування чатом,"
+        - "&7видимістю та ефектами."
         - ""
-        - "<yellow>▶ Нажми, чтобы открыть"
-
-    # Слот 31 - Косметика (Сундук)
+        - "&e▶ Натисніть, щоб відкрити"
     cosmetics:
-      name: "<aqua>Косметика"
+      name: "&dКастомізація"
       lore:
-        - "<gray>Преобразите свой внешний вид:"
-        - "<gray>Гаджеты, Питомцы, Эффекты"
+        - "&7Виділяйся з натовпу!"
+        - "&7Повідомлення при вході,"
+        - "&7гаджети та частинки."
         - ""
-        - "<yellow>▶ Нажми, чтобы открыть"
-
-    # Слот 33 - Донат/Магазин (Изумруд)
+        - "&e▶ Натисніть, щоб відкрити"
     shop:
-      name: "<green>Магазин"
+      name: "&aМагазин"
       lore:
-        - "<gray>Покупка привилегий"
-        - "<gray>и игровой валюты."
+        - "&7Купівля привілеїв"
+        - "&7та ігрової валюти."
         - ""
-        - "<yellow>▶ Нажми, чтобы купить"
+        - "&e▶ Натисніть, щоб придбати"
+  language_gui:
+    title: "Вибір мови"
+    ru:
+      name: "&cРусский"
+      lore:
+        - "&7Нажмите, чтобы переключить"
+        - "&7интерфейс на русский язык."
+    en:
+      name: "&9English"
+      lore:
+        - "&7Click to switch the"
+        - "&7interface to English."
+    ua:
+      name: "&eУкраїнська"
+      lore:
+        - "&7Натисніть, щоб перемкнути"
+        - "&7інтерфейс на українську."
 
-  # МЕНЮ ВЫБОРА РЕЖИМОВ (Компас)
   inventory:
-    title: "<black>Меню Сервера"
+    title: "Меню Сервера"
     bedwars:
-      name: "<red><bold>BedWars"
+      name: "&cBedWars"
       lore:
-        - "<gray>Классический режим."
+        - "&7Класичний режим."
         - ""
-        - "<yellow>▶ Нажми, чтобы играть!"
+        - "&e▶ Натисніть, щоб грати!"
+    vanilla:
+      name: "&aVanilla"
+      lore:
+        - "&7Класичне виживання"
+        - "&7Версія: &f1.21"
+        - ""
+        - "&e▶ Натисніть, щоб грати!"
+    duels:
+      name: "&eDuels"
+      lore:
+        - "&7Битви 1 на 1"
+        - ""
+        - "&eСкоро..."
 
   messages:
-    spawn_set: "%prefix_server% <green>Точка спавна установлена!"
-    teleport: "%prefix_server% <gray>Телепортация..."
-    visibility_hide: "<red>Все игроки скрыты!"
-    visibility_show: "<green>Все игроки теперь видны!"
+    spawn_set: "&b&lLastEngine &8» &aТочку спавну встановлено!"
+    teleport: "&b&lLastEngine &8» &7Телепортація..."
+    visibility_hide: "&cУсіх гравців приховано!"
+    visibility_show: "&aУсіх гравців тепер видно!"
+
+  commands:
+    npc_set: "&b&lLastEngine &8» &aNPC %name% встановлено!"
+    spawn_not_set: "&cПомилка &8» &cСпавн не встановлено!"
+    physics_usage: "&eВикористання: /physics <on|off>"
+    physics_on: "&b&lLastEngine &8» &aФізику блоків УВІМКНЕНО."
+    physics_off: "&b&lLastEngine &8» &cФізику блоків ВИМКНЕНО."
+    physics_off_desc: "&7(Квіти висять у повітрі, пісок не падає)"
+
+  pig:
+    name: "&d&lСвин-Бомбардувальник"
+    boom: "&d&lСвин-Бомбардувальник &8» &c&lБАБАХ!!!"
 
 auth:
   messages:
     join:
-      - "%prefix_server% <gray>Добро пожаловать!"
-      - "<gray>Для игры необходимо авторизоваться."
-      - "<yellow>Используйте Компас для выбора способа входа."
-    code_sent: "%prefix_server% <green>Код подтверждения отправлен в %method%!"
-    enter_code: "%prefix_server% <yellow>Введите код в чат или напишите: <gold>/code <12345>"
-    success: "%prefix_server% <green>Вы успешно вошли!"
-    wrong_code: "%prefix_error% <red>Неверный код! Попробуйте еще раз."
-    timeout: "%prefix_error% <red>Время действия кода истекло."
-    already: "%prefix_error% <red>Вы уже авторизованы."
+      - "&b&lLastEngine &8» &7Ласкаво просимо!"
+      - "&7Для гри необхідно авторизуватися."
+      - "&eВикористовуйте Компас для вибору способу входу."
+    code_sent: "&b&lLastEngine &8» &aКод підтвердження відправлено у %method%!"
+    enter_code: "&b&lLastEngine &8» &eВведіть код у чат або напишіть: &6/code <12345>"
+    success: "&b&lLastEngine &8» &aВи успішно увійшли!"
+    wrong_code: "&cПомилка &8» &cНевірний код! Спробуйте ще раз."
+    timeout: "&cПомилка &8» &cЧас дії коду минув."
+    already: "&cПомилка &8» &cВи вже авторизовані."
 
   items:
     selector:
-      name: "<green><bold>Меню Авторизации"
+      name: "&a&lМеню Авторизації"
       lore:
-        - "<gray>Нажми ПКМ,"
-        - "<gray>чтобы выбрать метод входа"
-        - "<gray>(Telegram или Почта)"
+        - "&7Натисніть ПКМ,"
+        - "&7щоб вибрати метод входу"
+        - "&7(Telegram або Пошта)"
 
   gui:
-    title: "<black>Выберите способ входа"
+    title: "Виберіть спосіб входу"
     telegram:
-      name: "<blue><bold>Telegram"
+      name: "&9&lTelegram"
       lore:
-        - "<gray>Самый быстрый способ."
-        - "<gray>Бот пришлет код в ЛС."
+        - "&7Найшвидший спосіб."
+        - "&7Бот надішле код в ОП."
         - ""
-        - "<yellow>▶ Нажми для выбора"
+        - "&e▶ Натисніть для вибору"
     email:
-      name: "<gold><bold>Email (Почта)"
+      name: "&6&lEmail (Пошта)"
       lore:
-        - "<gray>Код придет на почту."
-        - "<gray>Безопасно и надежно."
+        - "&7Код прийде на пошту."
+        - "&7Безпечно та надійно."
         - ""
-        - "<yellow>▶ Нажми для выбора"
+        - "&e▶ Натисніть для вибору"
+
+chat:
+  announcer:
+    hover: "&7Натисніть, щоб відкрити посилання"
+    forum:
+      link: "Перейти на Форум ➔"
+      text:
+        - "&fСпілкуйся, пропонуй свої ідеї та подавай"
+        - "&fзаявки на нашому офіційному форумі!"
+    telegram:
+      link: "Перейти в Telegram ➔"
+      text:
+        - "&fПриєднуйся до нашого Telegram-каналу,"
+        - "&fщоб бути в курсі всіх новин та оновлень!"
+    website:
+      link: "Перейти на Сайт ➔"
+      text:
+        - "&fВідвідай наш офіційний сайт для отримання"
+        - "&fдокладної інформації про проєкт!"
+    store:
+      link: "Відкрити Магазин ➔"
+      text:
+        - "&fХочеш виділитися та підтримати проєкт?"
+        - "&fКупуй привілеї та кейси в нашому магазині!"
+    discord:
+      link: "Приєднатися до Discord ➔"
+      text:
+        - "&fЗаходь на наш Discord-сервер!"
+        - "&fШукай тімейтів та спілкуйся з іншими гравцями."
+  staff:
+    no_permission: "&cУ вас немає доступу до Staff Chat."
+    usage: "&eВикористання: /sc <повідомлення>"
+  donor:
+    no_permission: "&cУ вас немає доступу до Donor Chat. Купіть привілей!"
+    usage: "&eВикористання: /dc <повідомлення>"
+  msg:
+    usage: "&eВикористання: /msg <нік> <повідомлення>"
+    not_found: "&cГравця не знайдено!"
+    hover_suggest: "&7Натисніть, щоб написати ще"
+    hover_reply: "&7Натисніть, щоб відповісти"
+    me: "&aЯ"
+  reply:
+    usage: "&eВикористання: /r <повідомлення>"
+    no_target: "&cВам нікому відповідати."
+    offline: "&cГравець вийшов з мережі."
+
+cosmetics:
+  gui:
+    title: "Косметика: Банери"
+    remove: "&c❌ Зняти косметику"
+    remove_lore: "&7Очистити слот шолома"
+  status:
+    free: "&aБезкоштовно!"
+    equip: "&eКлікніть, щоб одягнути"
+    bought: "&aПридбано! Клікніть, щоб одягнути"
+    buy: "&eКлікніть для покупки"
+    price: "&7Ціна: &6%price% Монет"
+  banners:
+    standard:
+      name: "&b⚡ Прапор LastEngine"
+      lore: "&7Стандартний прапор"
+    pirate:
+      name: "&c☠ Піратський прапор"
+      lore: "&7Йо-хо-хо!"
+    royal:
+      name: "&6♛ Королівський штандарт"
+      lore: "&7Для справжніх лордів"
+    ukraine:
+      name: "&eПрапор &bУкраїни"
+      lore: "&7Рідний прапор"
+    creeper:
+      name: "&aОбличчя Кріпера"
+      lore: "&7Тсссс..."
+    crusader:
+      name: "&fЩит Хрестоносця"
+      lore: "&7Deus Vult!"
+  messages:
+    equipped: "&b&lLastEngine &8» &aБанер успішно одягнено!"
+    purchased: "&b&lLastEngine &8» &aВи успішно придбали банер за &6%price% монет&a!"
+    not_enough_coins: "&cПомилка &8» &cНедостатньо монет для покупки! Потрібно: &6%price%"
+    removed: "&b&lLastEngine &8» &cКосметику знято."
+
+effects:
+  gui:
+    title: "Візуальні ефекти"
+    disable_all: "&cВимкнути всі ефекти"
+    disable_all_lore:
+      - "&7Прибирає всі частинки навколо вас."
+    close: "&cЗакрити"
+    close_lore:
+      - "&7Закрити меню візуальних ефектів."
+  status:
+    active_name: "&a★ &e%effect% &a★"
+    active_lore:
+      - ""
+      - "&aЕфект уже ввімкнено!"
+      - "&7Блищатиме навколо вас."
+    owned_name: "&e%effect%"
+    owned_lore:
+      - ""
+      - "&7Статус: &aРозблоковано"
+      - ""
+      - "&eНатисніть, щоб увімкнути!"
+    buy_name: "&e%effect%"
+    buy_lore:
+      - ""
+      - "&7Ціна: &6%price% монет"
+      - ""
+      - "&cУ вас не куплено!"
+      - "&eНатисніть, щоб придбати."
+  messages:
+    disabled: "&b&lLastEngine &8» &cЕфект вимкнено!"
+    selected: "&b&lLastEngine &8» &aЕфект %effect% успішно вибрано!"
+    purchased: "&b&lLastEngine &8» &aВи придбали ефект %effect%!"
+    not_enough_coins: "&cПомилка &8» &cНедостатньо монет для покупки!"
+  list:
+    heart: "Серця"
+    flame: "Вогняний дух"
+    magic: "Магічна аура"
+    notes: "Мелодія"
+    snow: "Снігова буря"
+    villager: "Смарагдовий блиск"
+    wings: "Крила Ангела"
+    devil: "Крила Диявола"
+    rings: "Вогняні кільця"
+    ender: "Аура Ендермена"
+    enchanted: "Стародавні руни"
+    blood: "Аура Берсерка"
+    halo: "Уламки надії"
+    frost: "Володар холоду"
+    rain: "Дощова хмара"
+    rods: "Магічні сфери"
+    hero: "Плащ Героя"
+    santa: "Шапка Санти"
+    inferno: "Інферно"
+    cube: "Вогняний Куб"
+    eclipse: "Затемнення"
+
+gadgets:
+  gui:
+    title: "Ваші гаджети"
+    remove: "&cЗняти гаджет"
+    remove_lore:
+      - "&7Прибрати гаджет з інвентарю."
+    close: "&cЗакрити"
+    close_lore:
+      - "&7Повернутися назад."
+  status:
+    active_name: "&a★ &c%gadget% &a★"
+    active_lore:
+      - ""
+      - "&aЕкіпіровано!"
+      - "&7Гаджет знаходиться у вашому інвентарі."
+    owned_name: "&c%gadget%"
+    owned_lore:
+      - ""
+      - "&7Статус: &aРозблоковано"
+      - ""
+      - "&eНатисніть, щоб взяти!"
+    buy_name: "&c%gadget%"
+    buy_lore:
+      - ""
+      - "&7Ціна: &6%price% монет"
+      - ""
+      - "&cУ вас не куплено!"
+      - "&eНатисніть, щоб придбати."
+  items:
+    equip_name: "&c%gadget%"
+    equip_lore:
+      - ""
+      - "&7Натисніть ПКМ, щоб використати!"
+  messages:
+    cooldown: "&cПомилка &8» &cЗачекайте %time% сек. перед кидком!"
+    removed: "&b&lLastEngine &8» &cВи прибрали гаджет у рюкзак!"
+    equipped: "&b&lLastEngine &8» &aВи взяли в руки: %gadget%"
+    purchased: "&b&lLastEngine &8» &aВи успішно придбали гаджет %gadget%!"
+    not_enough_coins: "&cПомилка &8» &cНедостатньо монет для покупки!"
+  list:
+    black_hole: "Чорна діра"
+    trampoline: "Батут"
+    disco_ball: "Диско-куля"
+    blizzard_blaster: "Заметіль"
+    rocket: "Ракета"
+    portal_gun: "Портальна гармата"
+    tsunami: "Цунамі"
+    flesh_hook: "М'ясний гак"
+    smash_down: "Удар по землі"
+    tnt: "Динаміт"
+    paintball_gun: "Пейнтбол"
+    color_bomb: "Кольорова бомба"
+    melon_thrower: "Кавуномет"
+    fun_gun: "Весела гармата"
+    thor_hammer: "Молот Тора"
+    explosive_sheep: "Вибухова вівця"
+    chickenator: "Куряча гармата"
+    bat_blaster: "Бластер мишей"
+    ender_rider: "Ендер-наїзник"
+    grappling_hook: "Гак-кішка"
+    jetpack: "Джетпак"
+    flame_walker: "Вогняний слід"
+    laser_pointer: "Лазер"
+    fake_creeper: "Фейковий кріпер"
+    ice_bomb: "Крижана бомба"
+    fireball: "Куля Ґаста"
+    zeus_strike: "Гнів Зевса"
+    love_aura: "Аура Кохання"
+
+lang:
+  usage: "&eВикористання: /lang <ru/en/ua>"
+  unknown: "&cНевідома мова! Доступно: ru, en, ua"
+
+parkour:
+  already_in: "&cПомилка &8» &cВи вже у паркурі! Стрибайте або впадіть, щоб скасувати."
+  server_full: "&cПомилка &8» &cСервер перевантажений паркуристами! Зачекайте трохи."
+  started: "&b&lLastEngine &8» &aПаркур розпочався! Здібності вимкнені."
+  actionbar: "&eРахунок: &6%score% &8| &eДистанція: &6%distance%"
+  failed: "&cПомилка &8» &cВи впали! Ваш рахунок: &e%score%"
+  win_first: "&b&lLastEngine &8» &a&lВІТАЄМО! &7Ви пройшли паркур і отримали &6500 монет&7!"
+  win_again: "&b&lLastEngine &8» &a&lВІДМІННО! &7Ви знову підкорили паркур!"
+  cooldown: "&7Нагорода буде доступна через &e%hours%г %minutes%хв&7."
+
+pets:
+  gui:
+    title: "Ваші улюбленці"
+    remove: "&cВідпустити улюбленця"
+    remove_lore:
+      - "&7Ваш супутник повернеться до лісу."
+    close: "&cЗакрити"
+    close_lore:
+      - "&7Закрити меню улюбленців."
+  status:
+    active_name: "&a★ &e%pet% &a★"
+    active_lore:
+      - ""
+      - "&aУлюбленця призвано!"
+      - "&7Він бігає десь поруч із вами."
+    owned_name: "&e%pet%"
+    owned_lore:
+      - ""
+      - "&7Статус: &aРозблоковано"
+      - ""
+      - "&eНатисніть, щоб призвати!"
+    buy_name: "&e%pet%"
+    buy_lore:
+      - ""
+      - "&7Ціна: &6%price% монет"
+      - ""
+      - "&cУ вас не куплено!"
+      - "&eНатисніть, щоб придбати."
+  messages:
+    removed: "&b&lLastEngine &8» &cВи відпустили свого улюбленця гуляти!"
+    spawned: "&b&lLastEngine &8» &aВи призвали: %pet%"
+    purchased: "&b&lLastEngine &8» &aВи придбали улюбленця %pet%!"
+    not_enough_coins: "&cПомилка &8» &cНедостатньо монет для покупки!"
+  entity_name: "&eУлюбленець &7%player%"
+  list:
+    dog: "Собака"
+    cat: "Котик"
+    bunny: "Великодній Заєць"
+    piggy: "Свинка"
+    chick: "Курча"
+    cow: "Корівка"
+    mooshroom: "Грибна корова"
+    sheep: "Овечка"
+    snowman: "Сніговик"
+    golem: "Залізний Голем"
+    llama: "Лама"
+    parrot: "Папуга"
+    bat: "Кажан"
+    bear: "Білий Ведмідь"
+
+punish:
+  commands:
+    no_permission: "&cПомилка &8» &cНемає прав!"
+    rank_junior: "&cПомилка &8» &cПотрібен ранг JUNIOR+"
+    rank_moder: "&cПомилка &8» &cПотрібен ранг MODER+"
+    cannot_punish_higher: "&cПомилка &8» &cНе можна покарати старшого за званням!"
+    player_offline: "&cПомилка &8» &cГравець не в мережі!"
+    invalid_time: "&cПомилка &8» &cНевірний час!"
+    usage_history: "&eВикористання: /history <нік>"
+    usage_punish: "&eВикористання: /%cmd% <гравець> ..."
+    usage_time: "&eВикористання: /%cmd% <гравець> <час> <причина>"
+    unmuted: "&b&lLastEngine &8» &aГравець розмучений."
+    unbanned: "&b&lLastEngine &8» &aГравець розбанений."
+    active_bans_header: "&aАктивні бани (%count%):"
+    active_bans_format: "&7- %player%"
+    history_header: "&aІсторія покарань %player%:"
+    history_bans: "&c&lBANS:"
+    history_mutes: "&b&lMUTES:"
+  screens:
+    time_now: "Спливає зараз"
+    mute: "\n&7=================================\n&b&lLastEngine &8- &cДоступ до чату заблоковано!\n&7Покарання спливає через: &e%time%\n&7Причина: &f%reason%\n&7Покарання видав: %admin%\n&7Оскаржити: &aforum.lastengine.net\n&7================================="
+    ban: "\n&cДоступ до сервера заблоковано!\n&7Покарання спливає через: &e%time%\n&7Причина: &f%reason%\n&7Покарання видав: %admin%\n \n&7Оскаржити: &aforum.lastengine.net"
+    kick: "\n&cВас було кікнуто з сервера!\n&7Покарання видав: %admin%\n \n&7Оскаржити: &aforum.lastengine.net"
+  formats:
+    history_entry: "&7[%date%] &6%type% &7(%duration%) by %admin%: &f%reason%"
+    staff_broadcast: "&7[&cStaff&7] %admin% &7issued &c&l%type% &7to &c%target% &7for &f%reason% &7(Duration: &e%duration%&7)"
+
+rank:
+  no_permission: "&cПомилка &8» &cНемає прав!"
+  usage: "&eВикористання: /setrank <нік> <RANK>"
+  player_not_found: "&cПомилка &8» &cГравця не знайдено!"
+  invalid_rank: "&cПомилка &8» &cТакого рангу немає! (PLAYER, ADMIN, DEV...)"
+  success_sender: "&b&lLastEngine &8» &aГравцеві %player% видано ранг %rank%"
+  success_target: "&b&lLastEngine &8» &aВам видано ранг %rank%"
+
+report:
+  commands:
+    no_permission: "&cПомилка &8» &cУ вас немає прав для перегляду скарг."
+    usage: "&cВикористання: /report <нік> <причина>"
+    self_report: "&cПомилка &8» &cВи не можете відправити скаргу на самого себе!"
+    already_reported: "&cПомилка &8» &cВи вже відправили скаргу на гравця &e%player%&c! Дочекайтеся, поки адміністрація її перевірить."
+    success: "&b&lLastEngine &8» &aВаша скарга на гравця &e%player% &aуспішно відправлена!"
+    staff_alert_1: "&8[&cСкарга&8] &fВід &e%sender% &fна &c%target%"
+    staff_alert_2: "&8[&cСкарга&8] &fПричина: &7%reason%"
+  gui:
+    main_title: "Список скарг | Стор. %page%"
+    player_title: "Скарги: %player% | Стор. %page%"
+    manage_title: "Керування: %player%"
+    empty_name: "&aСкарг немає!"
+    empty_lore:
+      - "&7Гравці поводяться добре."
+    head_name: "&cПідозрюваний: &f%player%"
+    head_lore:
+      - "&7Всього скарг: &e%count%"
+      - ""
+      - "&aЛКМ &8- &7Дивитися скарги"
+      - "&cПКМ &8- &7Керування порушником"
+    report_name: "&eСкарга від: &f%sender%"
+    report_lore:
+      - "&7Причина: &f%reason%"
+      - "&7Час: &8%time%"
+    btn_prev: "&e⬅ Попер. сторінка"
+    btn_next: "&eНаступна сторінка ➡"
+    btn_back_list: "&c⬅ Повернутися до списку порушників"
+    btn_back: "&c⬅ Повернутися до списку"
+    manage_tp: "&bТелепорт до гравця"
+    manage_tp_lore:
+      - "&7Натисніть, щоб переміститися"
+      - "&7до підозрюваного у ваніші."
+    manage_guilty: "&aВинен (Покарати)"
+    manage_guilty_lore:
+      - "&7Закрити скарги та"
+      - "&7видати &e1000 монет"
+      - "&7усім, хто кинув репорт."
+    manage_innocent: "&cНе винен (Виправдати)"
+    manage_innocent_lore:
+      - "&7Просто видалити всі"
+      - "&7скарги на цього гравця."
+  messages:
+    teleport_success: "&b&lLastEngine &8» &aВи телепортувалися до &e%player%"
+    teleport_fail: "&cПомилка &8» &cГравця &e%player% &cне знайдено на сервері."
+    reward_1: "&b&lLastEngine &8» &aГравець &e%player% &aбув покараний за вашою скаргою!"
+    reward_2: "&e+1000 монет &aза допомогу проєкту!"
+    guilty_staff: "&b&lLastEngine &8» &aГравця визнано винним. Репортери отримали по 1000 монет!"
+    innocent_staff: "&b&lLastEngine &8» &aГравця виправдано. Скарги видалено."
+
+staff:
+  join_message: "%prefix%%player%%suffix% &eзайшов на сервер."
+  admin_info: " &7[%location%] &8(%ip%)"
+  local_network: "Локальна мережа"
+  unknown_location: "Невідомо"
+
+eco:
+  no_permission: "&cПомилка &8» &cУ вас немає прав!"
+  usage: "&eВикористання: /eco <give|set> <гравець> <coins|emeralds> <сума>"
+  player_not_found: "&cПомилка &8» &cГравця не знайдено."
+  not_a_number: "&cПомилка &8» &cСума має бути числом."
+  stats_not_loaded: "&cПомилка &8» &cСтатистика гравця не завантажена."
+  success_coins: "&b&lLastEngine &8» &aВидано &e%amount% &aмонет гравцеві &b%player%"
+  success_emeralds: "&b&lLastEngine &8» &aВидано &a%amount% &aсмарагдів гравцеві &b%player%"
+  unknown_currency: "&cПомилка &8» &cНевідома валюта. Використовуйте coins або emeralds."
+
+stream:
+  commands:
+    usage_header: "&eВикористання:"
+    usage_link: "&e/stream link <нік> <посилання> &7- Прив'язати канал"
+    usage_add: "&e/stream add <посилання> &7- Опублікувати стрім"
+    usage_stop: "&e/stream stop &7- Завершити стрім"
+    link_usage: "&cВикористання: /stream link <нік> <посилання на канал>"
+    link_success: "&b&lLastEngine &8» &aКанал &e%url% &aуспішно додано гравцеві &e%player%"
+    stop_success: "&b&lLastEngine &8» &aВаш стрім успішно видалено зі списку активних!"
+    stop_fail: "&cПомилка &8» &cУ вас немає запущених стрімів."
+    add_usage: "&cВикористання: /stream add <повне посилання на стрім>"
+    add_no_links: "&cПомилка &8» &cВаш акаунт не прив'язано до жодного каналу! Зверніться до адміністрації."
+    add_invalid: "&cПомилка &8» &cПомилка! Посилання не збігається з жодним із ваших прив'язаних каналів."
+  announcement:
+    title: "  &b&lПРЯМИЙ ЕФІР &8| &f%streamer%"
+    subtitle: "  &7Гравець запустив стрім на проєкті! Залітай!"
+    link_text: "  &e&nНатисніть, щоб перейти на стрім ➔"
+    hover_text: "&7Відкрити трансляцію"
+  gui:
+    title: "Прямі трансляції"
+    empty_name: "&cНаразі стрімів немає"
+    empty_lore:
+      - "&7Повертайтеся пізніше!"
+    item_lore:
+      - "&7Платформа: %platform%"
+      - ""
+      - "&eНатисніть, щоб отримати"
+      - "&eпосилання в чат!"
+    platforms:
+      twitch: "&dTwitch"
+      youtube: "&cYouTube"
+      other: "&fТрансляція"
+    chat_link: "&8[&bСтріми&8] &fПосилання на стрім &b%streamer%&f: &e&n%url%"

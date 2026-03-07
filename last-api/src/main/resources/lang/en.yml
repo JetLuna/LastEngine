@@ -1,192 +1,810 @@
 prefix:
-  server: "<gradient:aqua:blue>LastEngine <dark_gray>»"
-  error: "<red>Ошибка <dark_gray>»"
+  server: "&b&lLastEngine &8»"
+  error: "&cError &8»"
 
 general:
-  no_permission: "%prefix_error% <red>У вас нет прав!"
-  lang_changed: "%prefix_server% <green>Язык изменен на Русский!"
-  player_only: "%prefix_error% <red>Только для игроков."
-  player_not_found: "%prefix_error% <red>Игрок не найден."
+  no_permission: "&cError &8» &cYou do not have permission!"
+  lang_changed: "&b&lLastEngine &8» &aLanguage changed to English!"
+  player_only: "&cError &8» &cOnly for players."
+  player_not_found: "&cError &8» &cPlayer not found."
 
 lobby:
   board:
-    title: "<gradient:gold:yellow><bold>LAST ENGINE"
-    nickname: "<gray>Никнейм:"
-    rank: "<gray>Ранг:"
-    online: "<blue><bold>Онлайн:"
-    footer: "<yellow>play.lastengine.net"
-  tab:
-    header: "\n<gradient:aqua:blue><bold>LAST ENGINE NETWORK</bold></gradient>\n<gray>Добро пожаловать, %player%!\n"
-    footer: "\n<gray>Онлайн: <green>%online%\n\n<yellow>Сайт: <white>www.lastengine.net\n"
+    title: "&6&lLAST ENGINE"
+    info_title: "&2Information:"
+    status: " &fStatus: %rank%"
+    guild: " &fGuild: &7N/A"
+    emeralds: " &fEmeralds: &a%emeralds%"
+    level_title: "&2Server Level:"
+    level: " &fLevel: &a%level%&2*"
+    progress: " &7↳ %progress% &a%percent%%"
+    server_title: "&2Server:"
+    online: " &fTotal Online: &a%online%"
+    lobby: " &fLobby: &a#1"
+    footer: "&aplay.lastengine.net"
 
-  # ПРЕДМЕТЫ В ИНВЕНТАРЕ (Хотбар)
+  tab:
+    header: "\n&a&lLAST &2&lENGINE\n&fRanks, crates, and\n&fmuch more:\n&awww.lastengine.net\n\n&7Players List:\n"
+    footer: "\n&fTotal Online ➔ &a%online%\n\n&7You are on server &aLobby-1\n"
+
+  customization_gui:
+    title: "Customization"
+    joiners:
+      name: "&aJoin Messages"
+      lore:
+        - "&7Surprise everyone with your"
+        - "&7appearance on the server!"
+        - ""
+        - "&eClick to select"
+    suffixes:
+      name: "&bSuffixes"
+      lore:
+        - "&7Cool titles next to"
+        - "&7your nickname."
+        - ""
+        - "&eClick to select"
+    effects:
+      name: "&dVisual Effects"
+      lore:
+        - "&7Beautiful particles that"
+        - "&7will fly around you."
+        - ""
+        - "&eClick to select"
+    pets:
+      name: "&6Pets"
+      lore:
+        - "&7Loyal companions that"
+        - "&7will follow you everywhere."
+        - ""
+        - "&eClick to select"
+    gadgets:
+      name: "&cGadgets"
+      lore:
+        - "&7Toys for crazy"
+        - "&7fun in the lobby."
+        - ""
+        - "&eClick to select"
+    banners:
+      name: "&3Banners"
+      lore:
+        - "&7Epic flags and banners"
+        - "&7worn on your back."
+        - ""
+        - "&eClick to select"
+    back: "&cBack"
+
+  joiner_gui:
+    categories_title: "Joiner Categories"
+    list_title: "Joiners: %category%"
+    cat_classic: "&eClassic"
+    cat_memes: "&aMemes"
+    cat_dark: "&4Dark"
+    back: "&cBack"
+    format: "&7Format: &f%format%"
+    selected: "&aSELECTED"
+    click_to_select: "&eClick to select"
+    price: "&cPrice: &a%price% ❇"
+    click_to_buy: "&7Click to buy"
+    messages:
+      selected: "&b&lLastEngine &8» &aYou have selected the message: &b%name%"
+      purchased: "&b&lLastEngine &8» &aPurchase successful! You bought: &b%name%"
+      not_enough: "&cError &8» &cYou don't have enough Emeralds! Need: &a%price% ❇"
+    list:
+      default:
+        name: "Standard"
+        format: "%prefix%%player%%suffix% &ejoined the game"
+      vip:
+        name: "Richie"
+        format: "%prefix%%player%%suffix% &6has graced us with their presence!"
+      meme_father:
+        name: "Sup, father"
+        format: "%prefix%%player%%suffix% &eflew into the server. Sup, father!"
+      meme_clown:
+        name: "Circus Arrived"
+        format: "%prefix%%player%%suffix% &eentered the arena!"
+      dark_ghoul:
+        name: "1000-7"
+        format: "%prefix%%player%%suffix% &4stepped out of the shadows. 1000-7..."
+      dark_berserk:
+        name: "Black Swordsman"
+        format: "%prefix%%player%%suffix% &8unsheathed the Dragon Slayer."
+
+  settings_gui:
+    title: "Settings"
+    visibility:
+      "on": "&aPlayers: Visible"
+      "off": "&cPlayers: Hidden"
+      lore:
+        - "&7Click to toggle"
+    chat:
+      "on": "&aChat: Visible"
+      "off": "&cChat: Hidden"
+      lore:
+        - "&7Click to toggle"
+    doublejump:
+      disabled_parkour: "&cDouble Jump"
+      disabled_parkour_lore:
+        - "&7Abilities disabled"
+        - "&cduring parkour!"
+      "on": "&aDouble Jump: ON"
+      "off": "&cDouble Jump: OFF"
+      lore:
+        - "&7Click to toggle"
+        - "&eRequires: GO"
+      unavailable: "&cDouble Jump"
+      unavailable_lore:
+        - "&7Unavailable"
+        - "&eBuy the GO rank"
+    fly:
+      disabled_parkour: "&cFlight"
+      disabled_parkour_lore:
+        - "&7Abilities disabled"
+        - "&cduring parkour!"
+      "on": "&aFlight: ON"
+      "off": "&cFlight: OFF"
+      lore:
+        - "&7Click to toggle"
+        - "&bRequires: PLUS"
+      unavailable: "&cFlight"
+      unavailable_lore:
+        - "&7Unavailable"
+        - "&bBuy the PLUS rank"
+    back: "&cBack"
+    messages:
+      parkour_disabled: "&cError &8» &cAbilities are disabled during parkour!"
+      fly_req: "&cError &8» &cYou need the PLUS rank!"
+      fly_on: "&b&lLastEngine &8» &aFlight enabled!"
+      fly_off: "&b&lLastEngine &8» &cFlight disabled!"
+      dj_auto_off: "&b&lLastEngine &8» &eDouble jump was automatically disabled."
+      dj_req: "&cError &8» &cYou need the GO rank!"
+      dj_on: "&b&lLastEngine &8» &aDouble jump enabled!"
+      dj_off: "&b&lLastEngine &8» &cDouble jump disabled!"
+      fly_auto_off: "&b&lLastEngine &8» &eFlight was automatically disabled."
+
+  suffix_gui:
+    categories_title: "Suffix Categories"
+    list_title: "Suffixes: %category%"
+    cat_titles: "&eTitles"
+    cat_memes: "&aMemes"
+    cat_anime: "&4Anime"
+    back: "&cBack"
+    format: "&7Display: &f%format%"
+    selected: "&aSELECTED"
+    click_to_select: "&eClick to select"
+    price: "&cPrice: &a%price% ❇"
+    click_to_buy: "&7Click to buy"
+    messages:
+      selected: "&b&lLastEngine &8» &aYou have selected the suffix: &b%name%"
+      purchased: "&b&lLastEngine &8» &aPurchase successful! You bought: &b%name%"
+      not_enough: "&cError &8» &cNot enough Emeralds! Need: &a%price% ❇"
+    list:
+      default:
+        name: "Disable"
+        format: ""
+      pro:
+        name: "Pro"
+        format: " &8[&bPRO&8]"
+      veteran:
+        name: "Veteran"
+        format: " &8[&6Veteran&8]"
+      toxic:
+        name: "Toxic"
+        format: " &8[&dToxic&8]"
+      clown:
+        name: "Clown"
+        format: " &8[&7Clown&8]"
+      hokage:
+        name: "Hokage"
+        format: " &8[&eHokage&8]"
+      ghoul:
+        name: "Ghoul"
+        format: " &8[&4Ghoul&8]"
+
   items:
     navigator:
-      name: "<green><bold>Выбор режима"
+      name: "&a&lMode Selector"
       lore:
-        - "<gray>Нажми ПКМ,"
-        - "<gray>чтобы открыть меню!"
-
+        - "&7Right-click to"
+        - "&7open the menu!"
     profile:
-      name: "<yellow><bold>Профиль"
+      name: "&e&lProfile"
       lore:
-        - "<gray>Статистика и настройки"
+        - "&7Statistics and settings"
         - ""
-        - "<yellow>▶ Нажми, чтобы открыть"
-
+        - "&e▶ Click to open"
     visibility:
       enabled:
-        name: "<green><bold>Игроки: ВИДНЫ"
+        name: "&a&lPlayers: VISIBLE"
         lore:
-          - "<gray>Нажми ПКМ, чтобы"
-          - "<red>скрыть <gray>всех игроков."
+          - "&7Right-click to"
+          - "&chide &7all players."
       disabled:
-        name: "<red><bold>Игроки: СКРЫТЫ"
+        name: "&c&lPlayers: HIDDEN"
         lore:
-          - "<gray>Нажми ПКМ, чтобы"
-          - "<green>показать <gray>всех игроков."
+          - "&7Right-click to"
+          - "&ashow &7all players."
+    parkour:
+      name: "&a&lRandom Parkour"
+      lore:
+        - "&7Right-click to"
+        - "&7start the challenge!"
 
   npc:
     bedwars:
-      name: "<red><bold>BedWars"
-      holo: "<gray>Онлайн: <green>%online%"
+      name: "&c&lBedWars"
+      holo: "&7Online: &a%online%"
     vanilla:
-      name: "<green><bold>Vanilla"
-      holo: "<gray>Онлайн: <green>%online%"
+      name: "&a&lVanilla"
+      holo: "&7Online: &a%online%"
     duels:
-      name: "<yellow><bold>Duels"
-      holo: "<gray>Скоро..."
+      name: "&e&lDuels"
+      holo: "&7Coming soon..."
     rewards:
-      name: "<gold><bold>Награды"
-      holo: "<yellow>Нажми для получения"
+      name: "&6&lRewards"
+      holo: "&eClick to claim"
 
   rewards:
-    title: "<black>Ежедневные награды"
-
+    title: "Daily Rewards"
     items:
-      # Формат названия дня
-      day_name: "День %day%"
-
-      # Статусы
-      received_lore: "<gray>Уже получено!"
-
-      current_name: "<gold><bold>День %day%"
-      reward_header: "<yellow>Награда:"
-      click_to_claim: "<green>▶ НАЖМИ, ЧТОБЫ ЗАБРАТЬ!"
-
-      locked_name: "<red>День %day%"
-      wait_header: "<gray>Следующая награда через:"
-      wait_time: "<red>%time%"
-
-      future_name: "<gray>День %day%"
-      future_lore: "<gray>Будет доступно позже"
-
-      # Описание наград
-      reward_coins: "<gray>• <gold>%amount% монет"
-      reward_emeralds: "<gray>• <green>%amount% изумрудов"
-
+      day_name: "Day %day%"
+      received_lore: "&7Already claimed!"
+      current_name: "&6&lDay %day%"
+      reward_header: "&eReward:"
+      click_to_claim: "&a▶ CLICK TO CLAIM!"
+      locked_name: "&cDay %day%"
+      wait_header: "&7Next reward in:"
+      wait_time: "&c%time%"
+      future_name: "&7Day %day%"
+      future_lore: "&7Available later"
+      reward_coins: "&7• &6%amount% coins"
+      reward_emeralds: "&7• &a%amount% emeralds"
     messages:
-      cooldown: "<red>Приходите позже! Осталось: %time%"
-      received: "<green>Вы получили награду за День %day%!"
-      received_coins: "<gold>+ %amount% монет"
-      received_emeralds: "<green>+ %amount% изумрудов"
+      cooldown: "&cError &8» &cCome back later! Time left: %time%"
+      received: "&b&lLastEngine &8» &aYou claimed the reward for Day %day%!"
+      received_coins: "&6+ %amount% coins"
+      received_emeralds: "&a+ %amount% emeralds"
 
-  # МЕНЮ ПРОФИЛЯ (GUI)
   profile_gui:
-    title: "<black>Профиль игрока"
-
-    # Слот 13 - Голова (Основная инфа)
+    language:
+      name: "&bLanguage"
+      lore:
+        - "&7Selecting the server interface language."
+        - ""
+        - "&e▶ Click to change"
+    title: "Player Profile"
     info:
-      name: "<green>Информация о персонаже"
+      name: "&aCharacter Information"
       lore:
-        - "<gray>Группа: %rank%"
-        - "<gray>Уровень: <green>%level%"
+        - "&7Rank: %rank%"
+        - "&7Level: &a%level%"
         - ""
-        - "<gray>Прогресс уровня:"
-        - "%progressbar% <gray>(%exp% / %max_exp%)"
+        - "&7Level Progress:"
+        - "%progressbar% &7(%exp% / %max_exp%)"
         - ""
-        - "<gray>Монеты: <gold>%coins% ⛃"
-        - "<gray>Изумруды: <green>%emeralds% 🟢"
+        - "&7Coins: &6%coins% ⛃"
+        - "&7Emeralds: &a%emeralds% 🟢"
         - ""
-        - "<yellow>▶ Нажми для статистики"
-
-    # Слот 29 - Настройки (Компаратор)
+        - "&e▶ Click for stats"
     settings:
-      name: "<red>Настройки аккаунта"
+      name: "&eSettings"
       lore:
-        - "<gray>Персонализация игрового"
-        - "<gray>процесса и интерфейса."
+        - "&7Manage chat, visibility"
+        - "&7and visual effects."
         - ""
-        - "<yellow>▶ Нажми, чтобы открыть"
-
-    # Слот 31 - Косметика (Сундук)
+        - "&e▶ Click to open"
     cosmetics:
-      name: "<aqua>Косметика"
+      name: "&dCustomization"
       lore:
-        - "<gray>Преобразите свой внешний вид:"
-        - "<gray>Гаджеты, Питомцы, Эффекты"
+        - "&7Stand out from the crowd!"
+        - "&7Join messages, gadgets"
+        - "&7and particles."
         - ""
-        - "<yellow>▶ Нажми, чтобы открыть"
-
-    # Слот 33 - Донат/Магазин (Изумруд)
+        - "&e▶ Click to open"
     shop:
-      name: "<green>Магазин"
+      name: "&aStore"
       lore:
-        - "<gray>Покупка привилегий"
-        - "<gray>и игровой валюты."
+        - "&7Purchase ranks and"
+        - "&7in-game currency."
         - ""
-        - "<yellow>▶ Нажми, чтобы купить"
+        - "&e▶ Click to buy"
+  language_gui:
+    title: "Language selection"
+    ru:
+      name: "&cРусский"
+      lore:
+        - "&7Нажмите, чтобы переключить"
+        - "&7интерфейс на русский язык."
+    en:
+      name: "&9English"
+      lore:
+        - "&7Click to switch the"
+        - "&7interface to English."
+    ua:
+      name: "&eУкраїнська"
+      lore:
+        - "&7Натисніть, щоб перемкнути"
+        - "&7інтерфейс на українську."
 
-  # МЕНЮ ВЫБОРА РЕЖИМОВ (Компас)
   inventory:
-    title: "<black>Меню Сервера"
+    title: "Server Menu"
     bedwars:
-      name: "<red><bold>BedWars"
+      name: "&cBedWars"
       lore:
-        - "<gray>Классический режим."
+        - "&7Classic mode."
         - ""
-        - "<yellow>▶ Нажми, чтобы играть!"
+        - "&e▶ Click to play!"
+    vanilla:
+      name: "&aVanilla"
+      lore:
+        - "&7Classic survival"
+        - "&7Version: &f1.21"
+        - ""
+        - "&e▶ Click to play!"
+    duels:
+      name: "&eDuels"
+      lore:
+        - "&71v1 Battles"
+        - ""
+        - "&eComing soon..."
 
   messages:
-    spawn_set: "%prefix_server% <green>Точка спавна установлена!"
-    teleport: "%prefix_server% <gray>Телепортация..."
-    visibility_hide: "<red>Все игроки скрыты!"
-    visibility_show: "<green>Все игроки теперь видны!"
+    spawn_set: "&b&lLastEngine &8» &aSpawn point set!"
+    teleport: "&b&lLastEngine &8» &7Teleporting..."
+    visibility_hide: "&cAll players hidden!"
+    visibility_show: "&aAll players are now visible!"
+
+  commands:
+    npc_set: "&b&lLastEngine &8» &aNPC %name% set!"
+    spawn_not_set: "&cError &8» &cSpawn is not set!"
+    physics_usage: "&eUsage: /physics <on|off>"
+    physics_on: "&b&lLastEngine &8» &aBlock physics ENABLED."
+    physics_off: "&b&lLastEngine &8» &cBlock physics DISABLED."
+    physics_off_desc: "&7(Flowers float in the air, sand doesn't fall)"
+
+  pig:
+    name: "&d&lBomber Pig"
+    boom: "&d&lBomber Pig &8» &c&lBOOM!!!"
 
 auth:
   messages:
     join:
-      - "%prefix_server% <gray>Добро пожаловать!"
-      - "<gray>Для игры необходимо авторизоваться."
-      - "<yellow>Используйте Компас для выбора способа входа."
-    code_sent: "%prefix_server% <green>Код подтверждения отправлен в %method%!"
-    enter_code: "%prefix_server% <yellow>Введите код в чат или напишите: <gold>/code <12345>"
-    success: "%prefix_server% <green>Вы успешно вошли!"
-    wrong_code: "%prefix_error% <red>Неверный код! Попробуйте еще раз."
-    timeout: "%prefix_error% <red>Время действия кода истекло."
-    already: "%prefix_error% <red>Вы уже авторизованы."
+      - "&b&lLastEngine &8» &7Welcome!"
+      - "&7You must log in to play."
+      - "&eUse the Compass to choose a login method."
+    code_sent: "&b&lLastEngine &8» &aVerification code sent to %method%!"
+    enter_code: "&b&lLastEngine &8» &eEnter code in chat or type: &6/code <12345>"
+    success: "&b&lLastEngine &8» &aYou have successfully logged in!"
+    wrong_code: "&cError &8» &cInvalid code! Try again."
+    timeout: "&cError &8» &cThe code has expired."
+    already: "&cError &8» &cYou are already logged in."
 
   items:
     selector:
-      name: "<green><bold>Меню Авторизации"
+      name: "&a&lAuth Menu"
       lore:
-        - "<gray>Нажми ПКМ,"
-        - "<gray>чтобы выбрать метод входа"
-        - "<gray>(Telegram или Почта)"
+        - "&7Right-click to"
+        - "&7select login method"
+        - "&7(Telegram or Email)"
 
   gui:
-    title: "<black>Выберите способ входа"
+    title: "Choose login method"
     telegram:
-      name: "<blue><bold>Telegram"
+      name: "&9&lTelegram"
       lore:
-        - "<gray>Самый быстрый способ."
-        - "<gray>Бот пришлет код в ЛС."
+        - "&7The fastest method."
+        - "&7The bot will send a code in PM."
         - ""
-        - "<yellow>▶ Нажми для выбора"
+        - "&e▶ Click to select"
     email:
-      name: "<gold><bold>Email (Почта)"
+      name: "&6&lEmail"
       lore:
-        - "<gray>Код придет на почту."
-        - "<gray>Безопасно и надежно."
+        - "&7The code will be sent to email."
+        - "&7Safe and reliable."
         - ""
-        - "<yellow>▶ Нажми для выбора"
+        - "&e▶ Click to select"
+
+chat:
+  announcer:
+    hover: "&7Click to open link"
+    forum:
+      link: "Go to Forum ➔"
+      text:
+        - "&fChat, suggest ideas, and submit"
+        - "&fapplications on our official forum!"
+    telegram:
+      link: "Go to Telegram ➔"
+      text:
+        - "&fJoin our Telegram channel"
+        - "&fto stay updated on all news and updates!"
+    website:
+      link: "Go to Website ➔"
+      text:
+        - "&fVisit our official website for"
+        - "&fdetailed information about the project!"
+    store:
+      link: "Open Store ➔"
+      text:
+        - "&fWant to stand out and support the project?"
+        - "&fBuy ranks and crates in our store!"
+    discord:
+      link: "Join Discord ➔"
+      text:
+        - "&fJoin our Discord server!"
+        - "&fFind teammates and chat with other players."
+  staff:
+    no_permission: "&cYou do not have access to Staff Chat."
+    usage: "&eUsage: /sc <message>"
+  donor:
+    no_permission: "&cYou do not have access to Donor Chat. Buy a rank!"
+    usage: "&eUsage: /dc <message>"
+  msg:
+    usage: "&eUsage: /msg <player> <message>"
+    not_found: "&cPlayer not found!"
+    hover_suggest: "&7Click to write more"
+    hover_reply: "&7Click to reply"
+    me: "&aMe"
+  reply:
+    usage: "&eUsage: /r <message>"
+    no_target: "&cYou have no one to reply to."
+    offline: "&cPlayer went offline."
+
+cosmetics:
+  gui:
+    title: "Cosmetics: Banners"
+    remove: "&c❌ Remove cosmetic"
+    remove_lore: "&7Clear helmet slot"
+  status:
+    free: "&aFree!"
+    equip: "&eClick to equip"
+    bought: "&aPurchased! Click to equip"
+    buy: "&eClick to buy"
+    price: "&7Price: &6%price% Coins"
+  banners:
+    standard:
+      name: "&b⚡ LastEngine Flag"
+      lore: "&7Standard flag"
+    pirate:
+      name: "&c☠ Pirate Flag"
+      lore: "&7Yo-ho-ho!"
+    royal:
+      name: "&6♛ Royal Standard"
+      lore: "&7For true lords"
+    ukraine:
+      name: "&eFlag of &bUkraine"
+      lore: "&7Native flag"
+    creeper:
+      name: "&aCreeper Face"
+      lore: "&7Sssss..."
+    crusader:
+      name: "&fCrusader Shield"
+      lore: "&7Deus Vult!"
+  messages:
+    equipped: "&b&lLastEngine &8» &aBanner equipped successfully!"
+    purchased: "&b&lLastEngine &8» &aYou successfully bought a banner for &6%price% coins&a!"
+    not_enough_coins: "&cError &8» &cNot enough coins! Need: &6%price%"
+    removed: "&b&lLastEngine &8» &cCosmetic removed."
+
+effects:
+  gui:
+    title: "Visual Effects"
+    disable_all: "&cDisable all effects"
+    disable_all_lore:
+      - "&7Removes all particles around you."
+    close: "&cClose"
+    close_lore:
+      - "&7Close the visual effects menu."
+  status:
+    active_name: "&a★ &e%effect% &a★"
+    active_lore:
+      - ""
+      - "&aEffect is active!"
+      - "&7Will sparkle around you."
+    owned_name: "&e%effect%"
+    owned_lore:
+      - ""
+      - "&7Status: &aUnlocked"
+      - ""
+      - "&eClick to enable!"
+    buy_name: "&e%effect%"
+    buy_lore:
+      - ""
+      - "&7Price: &6%price% coins"
+      - ""
+      - "&cYou don't own this!"
+      - "&eClick to buy."
+  messages:
+    disabled: "&b&lLastEngine &8» &cEffect disabled!"
+    selected: "&b&lLastEngine &8» &aEffect %effect% successfully selected!"
+    purchased: "&b&lLastEngine &8» &aYou bought the %effect% effect!"
+    not_enough_coins: "&cError &8» &cNot enough coins to purchase!"
+  list:
+    heart: "Hearts"
+    flame: "Fire Spirit"
+    magic: "Magic Aura"
+    notes: "Melody"
+    snow: "Snowstorm"
+    villager: "Emerald Shine"
+    wings: "Angel Wings"
+    devil: "Devil Wings"
+    rings: "Fire Rings"
+    ender: "Enderman Aura"
+    enchanted: "Ancient Runes"
+    blood: "Berserker Aura"
+    halo: "Shards of Hope"
+    frost: "Frost Lord"
+    rain: "Rain Cloud"
+    rods: "Magic Spheres"
+    hero: "Hero's Cape"
+    santa: "Santa's Hat"
+    inferno: "Inferno"
+    cube: "Fire Cube"
+    eclipse: "Eclipse"
+
+gadgets:
+  gui:
+    title: "Your Gadgets"
+    remove: "&cRemove gadget"
+    remove_lore:
+      - "&7Remove gadget from inventory."
+    close: "&cClose"
+    close_lore:
+      - "&7Go back."
+  status:
+    active_name: "&a★ &c%gadget% &a★"
+    active_lore:
+      - ""
+      - "&aEquipped!"
+      - "&7The gadget is in your inventory."
+    owned_name: "&c%gadget%"
+    owned_lore:
+      - ""
+      - "&7Status: &aUnlocked"
+      - ""
+      - "&eClick to take!"
+    buy_name: "&c%gadget%"
+    buy_lore:
+      - ""
+      - "&7Price: &6%price% coins"
+      - ""
+      - "&cYou don't own this!"
+      - "&eClick to buy."
+  items:
+    equip_name: "&c%gadget%"
+    equip_lore:
+      - ""
+      - "&7Right-click to use!"
+  messages:
+    cooldown: "&cError &8» &cWait %time% sec. before throwing!"
+    removed: "&b&lLastEngine &8» &cYou put the gadget back in your backpack!"
+    equipped: "&b&lLastEngine &8» &aYou equipped: %gadget%"
+    purchased: "&b&lLastEngine &8» &aYou successfully bought the gadget %gadget%!"
+    not_enough_coins: "&cError &8» &cNot enough coins to purchase!"
+  list:
+    black_hole: "Black Hole"
+    trampoline: "Trampoline"
+    disco_ball: "Disco Ball"
+    blizzard_blaster: "Blizzard"
+    rocket: "Rocket"
+    portal_gun: "Portal Gun"
+    tsunami: "Tsunami"
+    flesh_hook: "Flesh Hook"
+    smash_down: "Smash Down"
+    tnt: "TNT"
+    paintball_gun: "Paintball"
+    color_bomb: "Color Bomb"
+    melon_thrower: "Melon Thrower"
+    fun_gun: "Fun Gun"
+    thor_hammer: "Thor's Hammer"
+    explosive_sheep: "Explosive Sheep"
+    chickenator: "Chickenator"
+    bat_blaster: "Bat Blaster"
+    ender_rider: "Ender Rider"
+    grappling_hook: "Grappling Hook"
+    jetpack: "Jetpack"
+    flame_walker: "Flame Walker"
+    laser_pointer: "Laser Pointer"
+    fake_creeper: "Fake Creeper"
+    ice_bomb: "Ice Bomb"
+    fireball: "Ghast Fireball"
+    zeus_strike: "Wrath of Zeus"
+    love_aura: "Love Aura"
+
+lang:
+  usage: "&eUsage: /lang <en/ru/ua>"
+  unknown: "&cUnknown language! Available: en, ru, ua"
+
+parkour:
+  already_in: "&cError &8» &cYou are already in parkour! Jump or fall to cancel."
+  server_full: "&cError &8» &cThe server is overloaded with parkour players! Wait a bit."
+  started: "&b&lLastEngine &8» &aParkour started! Abilities disabled."
+  actionbar: "&eScore: &6%score% &8| &eDistance: &6%distance%"
+  failed: "&cError &8» &cYou fell! Your score: &e%score%"
+  win_first: "&b&lLastEngine &8» &a&lCONGRATULATIONS! &7You completed the parkour and received &6500 coins&7!"
+  win_again: "&b&lLastEngine &8» &a&lGREAT! &7You conquered the parkour again!"
+  cooldown: "&7Reward will be available in &e%hours%h %minutes%m&7."
+
+pets:
+  gui:
+    title: "Your Pets"
+    remove: "&cRelease pet"
+    remove_lore:
+      - "&7Your companion will return to the forest."
+    close: "&cClose"
+    close_lore:
+      - "&7Close the pets menu."
+  status:
+    active_name: "&a★ &e%pet% &a★"
+    active_lore:
+      - ""
+      - "&aPet summoned!"
+      - "&7It's running somewhere near you."
+    owned_name: "&e%pet%"
+    owned_lore:
+      - ""
+      - "&7Status: &aUnlocked"
+      - ""
+      - "&eClick to summon!"
+    buy_name: "&e%pet%"
+    buy_lore:
+      - ""
+      - "&7Price: &6%price% coins"
+      - ""
+      - "&cYou don't own this!"
+      - "&eClick to buy."
+  messages:
+    removed: "&b&lLastEngine &8» &cYou let your pet go for a walk!"
+    spawned: "&b&lLastEngine &8» &aYou summoned: %pet%"
+    purchased: "&b&lLastEngine &8» &aYou bought the pet %pet%!"
+    not_enough_coins: "&cError &8» &cNot enough coins to purchase!"
+  entity_name: "&e%player%'s &7Pet"
+  list:
+    dog: "Dog"
+    cat: "Cat"
+    bunny: "Easter Bunny"
+    piggy: "Piggy"
+    chick: "Chick"
+    cow: "Cow"
+    mooshroom: "Mooshroom"
+    sheep: "Sheep"
+    snowman: "Snowman"
+    golem: "Iron Golem"
+    llama: "Llama"
+    parrot: "Parrot"
+    bat: "Bat"
+    bear: "Polar Bear"
+
+punish:
+  commands:
+    no_permission: "&cError &8» &cNo permission!"
+    rank_junior: "&cError &8» &cRequires JUNIOR+ rank"
+    rank_moder: "&cError &8» &cRequires MODER+ rank"
+    cannot_punish_higher: "&cError &8» &cCannot punish a higher rank!"
+    player_offline: "&cError &8» &cPlayer is offline!"
+    invalid_time: "&cError &8» &cInvalid time!"
+    usage_history: "&eUsage: /history <player>"
+    usage_punish: "&eUsage: /%cmd% <player> ..."
+    usage_time: "&eUsage: /%cmd% <player> <time> <reason>"
+    unmuted: "&b&lLastEngine &8» &aPlayer unmuted."
+    unbanned: "&b&lLastEngine &8» &aPlayer unbanned."
+    active_bans_header: "&aActive bans (%count%):"
+    active_bans_format: "&7- %player%"
+    history_header: "&aPunishment history for %player%:"
+    history_bans: "&c&lBANS:"
+    history_mutes: "&b&lMUTES:"
+  screens:
+    time_now: "Expires now"
+    mute: "\n&7=================================\n&b&lLastEngine &8- &cChat access blocked!\n&7Punishment expires in: &e%time%\n&7Reason: &f%reason%\n&7Punished by: %admin%\n&7Appeal at: &aforum.lastengine.net\n&7================================="
+    ban: "\n&cServer access blocked!\n&7Punishment expires in: &e%time%\n&7Reason: &f%reason%\n&7Punished by: %admin%\n \n&7Appeal at: &aforum.lastengine.net"
+    kick: "\n&cYou have been kicked from the server!\n&7Punished by: %admin%\n \n&7Appeal at: &aforum.lastengine.net"
+  formats:
+    history_entry: "&7[%date%] &6%type% &7(%duration%) by %admin%: &f%reason%"
+    staff_broadcast: "&7[&cStaff&7] %admin% &7issued &c&l%type% &7to &c%target% &7for &f%reason% &7(Duration: &e%duration%&7)"
+
+rank:
+  no_permission: "&cError &8» &cNo permission!"
+  usage: "&eUsage: /setrank <player> <RANK>"
+  player_not_found: "&cError &8» &cPlayer not found!"
+  invalid_rank: "&cError &8» &cRank does not exist! (PLAYER, ADMIN, DEV...)"
+  success_sender: "&b&lLastEngine &8» &aGranted rank %rank% to player %player%"
+  success_target: "&b&lLastEngine &8» &aYou have been granted rank %rank%"
+
+report:
+  commands:
+    no_permission: "&cError &8» &cYou do not have permission to view reports."
+    usage: "&cUsage: /report <player> <reason>"
+    self_report: "&cError &8» &cYou cannot report yourself!"
+    already_reported: "&cError &8» &cYou already reported &e%player%&c! Please wait for staff to review it."
+    success: "&b&lLastEngine &8» &aYour report against &e%player% &ahas been sent successfully!"
+    staff_alert_1: "&8[&cReport&8] &fFrom &e%sender% &fagainst &c%target%"
+    staff_alert_2: "&8[&cReport&8] &fReason: &7%reason%"
+  gui:
+    main_title: "Reports List | Page %page%"
+    player_title: "Reports: %player% | Page %page%"
+    manage_title: "Manage: %player%"
+    empty_name: "&aNo reports!"
+    empty_lore:
+      - "&7Players are behaving well."
+    head_name: "&cSuspect: &f%player%"
+    head_lore:
+      - "&7Total reports: &e%count%"
+      - ""
+      - "&aLMB &8- &7View reports"
+      - "&cRMB &8- &7Manage offender"
+    report_name: "&eReport by: &f%sender%"
+    report_lore:
+      - "&7Reason: &f%reason%"
+      - "&7Time: &8%time%"
+    btn_prev: "&e⬅ Prev. page"
+    btn_next: "&eNext page ➡"
+    btn_back_list: "&c⬅ Back to suspects list"
+    btn_back: "&c⬅ Back to list"
+    manage_tp: "&bTeleport to player"
+    manage_tp_lore:
+      - "&7Click to teleport to"
+      - "&7the suspect in vanish."
+    manage_guilty: "&aGuilty (Punish)"
+    manage_guilty_lore:
+      - "&7Close reports and"
+      - "&7give &e1000 coins"
+      - "&7to all reporters."
+    manage_innocent: "&cInnocent (Clear)"
+    manage_innocent_lore:
+      - "&7Simply delete all"
+      - "&7reports against this player."
+  messages:
+    teleport_success: "&b&lLastEngine &8» &aTeleported to &e%player%"
+    teleport_fail: "&cError &8» &cPlayer &e%player% &cnot found on the server."
+    reward_1: "&b&lLastEngine &8» &aPlayer &e%player% &awas punished based on your report!"
+    reward_2: "&e+1000 coins &afor helping the project!"
+    guilty_staff: "&b&lLastEngine &8» &aPlayer found guilty. Reporters received 1000 coins!"
+    innocent_staff: "&b&lLastEngine &8» &aPlayer cleared. Reports deleted."
+
+staff:
+  join_message: "%prefix%%player%%suffix% &ejoined the server."
+  admin_info: " &7[%location%] &8(%ip%)"
+  local_network: "Local Network"
+  unknown_location: "Unknown"
+
+eco:
+  no_permission: "&cError &8» &cYou do not have permission!"
+  usage: "&eUsage: /eco <give|set> <player> <coins|emeralds> <amount>"
+  player_not_found: "&cError &8» &cPlayer not found."
+  not_a_number: "&cError &8» &cAmount must be a number."
+  stats_not_loaded: "&cError &8» &cPlayer statistics not loaded."
+  success_coins: "&b&lLastEngine &8» &aGiven &e%amount% &acoins to &b%player%"
+  success_emeralds: "&b&lLastEngine &8» &aGiven &a%amount% &aemeralds to &b%player%"
+  unknown_currency: "&cError &8» &cUnknown currency. Use coins or emeralds."
+
+stream:
+  commands:
+    usage_header: "&eUsage:"
+    usage_link: "&e/stream link <player> <url> &7- Link channel"
+    usage_add: "&e/stream add <url> &7- Announce stream"
+    usage_stop: "&e/stream stop &7- End stream"
+    link_usage: "&cUsage: /stream link <player> <channel url>"
+    link_success: "&b&lLastEngine &8» &aChannel &e%url% &asuccessfully linked to &e%player%"
+    stop_success: "&b&lLastEngine &8» &aYour stream was successfully removed from the active list!"
+    stop_fail: "&cError &8» &cYou don't have any active streams."
+    add_usage: "&cUsage: /stream add <full stream url>"
+    add_no_links: "&cError &8» &cYour account is not linked to any channel! Contact staff."
+    add_invalid: "&cError &8» &cError! The link doesn't match any of your linked channels."
+  announcement:
+    title: "  &b&lLIVE STREAM &8| &f%streamer%"
+    subtitle: "  &7A player is live on the project! Come watch!"
+    link_text: "  &e&nClick here to join the stream ➔"
+    hover_text: "&7Open stream"
+  gui:
+    title: "Live Streams"
+    empty_name: "&cNo active streams at the moment"
+    empty_lore:
+      - "&7Check back later!"
+    item_lore:
+      - "&7Platform: %platform%"
+      - ""
+      - "&eClick to get"
+      - "&ethe link in chat!"
+    platforms:
+      twitch: "&dTwitch"
+      youtube: "&cYouTube"
+      other: "&fStream"
+    chat_link: "&8[&bStreams&8] &fStream link for &b%streamer%&f: &e&n%url%"

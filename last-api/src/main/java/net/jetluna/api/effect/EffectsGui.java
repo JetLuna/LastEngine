@@ -1,11 +1,13 @@
 package net.jetluna.api.effect;
 
-import net.jetluna.api.LastApi; // Добавили доступ к ядру плагина
+import net.jetluna.api.LastApi;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -15,14 +17,15 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EffectsGui implements Listener {
 
-    private static final String TITLE = "Визуальные эффекты";
-
     public static void open(Player player) {
-        Inventory gui = Bukkit.createInventory(player, 54, TITLE);
+        String title = toLegacy(LanguageManager.getString(player, "effects.gui.title"));
+        Inventory gui = Bukkit.createInventory(player, 54, title);
+
         PlayerStats stats = StatsManager.getStats(player);
         if (stats == null) return;
 
@@ -43,39 +46,46 @@ public class EffectsGui implements Listener {
 
             ItemBuilder builder = new ItemBuilder(effect.getIcon());
 
+            // Получаем локализованное название эффекта (например, "Сердца")
+            String effectName = toLegacy(LanguageManager.getString(player, "effects.list." + effect.name().toLowerCase()));
+
             if (isActive) {
-                builder.setName("&a★ &e" + effect.getDisplayName() + " &a★");
-                builder.setLore(Arrays.asList("", "&aЭффект уже включен!", "&7Будет сверкать вокруг вас."));
+                builder.setName(toLegacy(LanguageManager.getString(player, "effects.status.active_name")).replace("%effect%", effectName));
+                builder.setLore(getLegacyList(player, "effects.status.active_lore"));
             } else if (isOwned) {
-                builder.setName("&e" + effect.getDisplayName());
-                builder.setLore(Arrays.asList("", "&7Статус: &aРазблокировано", "", "&eНажмите, чтобы включить!"));
+                builder.setName(toLegacy(LanguageManager.getString(player, "effects.status.owned_name")).replace("%effect%", effectName));
+                builder.setLore(getLegacyList(player, "effects.status.owned_lore"));
             } else {
-                builder.setName("&e" + effect.getDisplayName());
-                builder.setLore(Arrays.asList("", "&7Цена: &6" + effect.getPrice() + " монет", "", "&cУ вас не куплено!", "&eНажмите, чтобы купить."));
+                builder.setName(toLegacy(LanguageManager.getString(player, "effects.status.buy_name")).replace("%effect%", effectName));
+                List<String> lore = getLegacyList(player, "effects.status.buy_lore");
+                lore.replaceAll(s -> s.replace("%price%", String.valueOf(effect.getPrice())));
+                builder.setLore(lore);
             }
 
             gui.setItem(slots[i], builder.build());
         }
 
-        gui.setItem(48, new ItemBuilder(Material.BARRIER)
-                .setName("&cВыключить все эффекты")
-                .setLore(Arrays.asList("&7Убирает все партиклы вокруг вас."))
-                .build());
+        String disableName = toLegacy(LanguageManager.getString(player, "effects.gui.disable_all"));
+        List<String> disableLore = getLegacyList(player, "effects.gui.disable_all_lore");
+        gui.setItem(48, new ItemBuilder(Material.BARRIER).setName(disableName).setLore(disableLore).build());
 
-        gui.setItem(49, new ItemBuilder(Material.ARROW)
-                .setName("&cЗакрыть")
-                .setLore(Arrays.asList("&7Закрыть меню визуальных эффектов."))
-                .build());
+        String closeName = toLegacy(LanguageManager.getString(player, "effects.gui.close"));
+        List<String> closeLore = getLegacyList(player, "effects.gui.close_lore");
+        gui.setItem(49, new ItemBuilder(Material.ARROW).setName(closeName).setLore(closeLore).build());
 
         player.openInventory(gui);
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!ChatUtil.strip(event.getView().getTitle()).equals(TITLE)) return;
+        Player player = (Player) event.getWhoClicked();
+
+        // Сравниваем очищенный от цветов заголовок, чтобы локализация не сломала проверки
+        String expectedTitle = toLegacy(LanguageManager.getString(player, "effects.gui.title"));
+        if (!ChatColor.stripColor(event.getView().getTitle()).equals(ChatColor.stripColor(expectedTitle))) return;
+
         event.setCancelled(true);
 
-        Player player = (Player) event.getWhoClicked();
         ItemStack item = event.getCurrentItem();
         if (item == null || item.getType() == Material.AIR || item.getType() == Material.GRAY_STAINED_GLASS_PANE) return;
 
@@ -91,10 +101,10 @@ public class EffectsGui implements Listener {
 
         if (slot == 48) {
             stats.setActiveEffect("");
-            ChatUtil.sendMessage(player, "&cЭффект выключен!");
+            String msg = toLegacy(LanguageManager.getString(player, "effects.messages.disabled"));
+            ChatUtil.sendMessage(player, msg);
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
 
-            // Запускаем обновление через планировщик
             Bukkit.getScheduler().runTask(LastApi.getInstance(), () -> open(player));
             return;
         }
@@ -103,28 +113,49 @@ public class EffectsGui implements Listener {
             if (item.getType() == effect.getIcon()) {
                 boolean isActive = stats.getActiveEffect().equals(effect.name());
                 boolean isOwned = player.isOp() || isActive;
+                String effectName = toLegacy(LanguageManager.getString(player, "effects.list." + effect.name().toLowerCase()));
 
                 if (isOwned) {
                     stats.setActiveEffect(effect.name());
-                    ChatUtil.sendMessage(player, "&aЭффект " + effect.getDisplayName() + " успешно выбран!");
+                    String msg = toLegacy(LanguageManager.getString(player, "effects.messages.selected")).replace("%effect%", effectName);
+                    ChatUtil.sendMessage(player, msg);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
                 } else {
                     if (stats.getCoins() >= effect.getPrice()) {
                         stats.setCoins(stats.getCoins() - effect.getPrice());
                         stats.setActiveEffect(effect.name());
-                        ChatUtil.sendMessage(player, "&aВы купили эффект " + effect.getDisplayName() + "!");
+                        String msg = toLegacy(LanguageManager.getString(player, "effects.messages.purchased")).replace("%effect%", effectName);
+                        ChatUtil.sendMessage(player, msg);
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                     } else {
-                        ChatUtil.sendMessage(player, "&cНедостаточно монет для покупки!");
+                        String msg = toLegacy(LanguageManager.getString(player, "effects.messages.not_enough_coins"));
+                        ChatUtil.sendMessage(player, msg);
                         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
                     }
                 }
 
-                // РЕШЕНИЕ ПРОБЛЕМЫ ВЫЛЕТА:
-                // Открываем обновленное меню с задержкой в 1 тик
                 Bukkit.getScheduler().runTask(LastApi.getInstance(), () -> open(player));
                 break;
             }
         }
+    }
+
+    // --- ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ---
+
+    private static List<String> getLegacyList(Player player, String key) {
+        List<String> list = LanguageManager.getList(player, key);
+        List<String> legacyList = new ArrayList<>();
+        if (list != null) {
+            for (String s : list) {
+                legacyList.add(toLegacy(s));
+            }
+        }
+        return legacyList;
+    }
+
+    private static String toLegacy(String text) {
+        if (text == null) return "";
+        String legacy = text.replace("<dark_red>", "&4").replace("</dark_red>", "").replace("<red>", "&c").replace("</red>", "").replace("<gold>", "&6").replace("</gold>", "").replace("<yellow>", "&e").replace("</yellow>", "").replace("<dark_green>", "&2").replace("</dark_green>", "").replace("<green>", "&a").replace("</green>", "").replace("<aqua>", "&b").replace("</aqua>", "").replace("<dark_aqua>", "&3").replace("</dark_aqua>", "").replace("<dark_blue>", "&1").replace("</dark_blue>", "").replace("<blue>", "&9").replace("</blue>", "").replace("<light_purple>", "&d").replace("</light_purple>", "").replace("<dark_purple>", "&5").replace("</dark_purple>", "").replace("<white>", "&f").replace("</white>", "").replace("<gray>", "&7").replace("</gray>", "").replace("<dark_gray>", "&8").replace("</dark_gray>", "").replace("<black>", "&0").replace("</black>", "").replace("<bold>", "&l").replace("</bold>", "").replace("<italic>", "&o").replace("</italic>", "").replace("<strikethrough>", "&m").replace("</strikethrough>", "").replace("<underlined>", "&n").replace("</underlined>", "").replace("<obfuscated>", "&k").replace("</obfuscated>", "").replace("<reset>", "&r").replace("</reset>", "").replaceAll("<[^>]+>", "");
+        return ChatColor.translateAlternateColorCodes('&', legacy);
     }
 }

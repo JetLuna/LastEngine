@@ -1,10 +1,12 @@
 package net.jetluna.lobby.gui;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -20,70 +22,74 @@ public class SuffixGui implements Listener {
     private static final Map<UUID, Set<String>> unlockedSuffixes = new HashMap<>();
 
     public enum Suffix {
-        DEFAULT("Титулы", "Отключить", "", 0, Material.BARRIER),
-        PRO("Титулы", "Про", " &8[&bPRO&8]", 150, Material.DIAMOND_SWORD),
-        VETERAN("Титулы", "Ветеран", " &8[&6Ветеран&8]", 500, Material.GOLDEN_APPLE),
+        DEFAULT("titles", 0, Material.BARRIER),
+        PRO("titles", 150, Material.DIAMOND_SWORD),
+        VETERAN("titles", 500, Material.GOLDEN_APPLE),
+        TOXIC("memes", 200, Material.POISONOUS_POTATO),
+        CLOWN("memes", 150, Material.SLIME_BALL),
+        HOKAGE("anime", 300, Material.BLAZE_POWDER),
+        GHOUL("anime", 400, Material.WITHER_SKELETON_SKULL);
 
-        TOXIC("Мемы", "Токсик", " &8[&dТоксик&8]", 200, Material.POISONOUS_POTATO),
-        CLOWN("Мемы", "Клоун", " &8[&7Клоун&8]", 150, Material.SLIME_BALL),
-
-        HOKAGE("Аниме", "Хокаге", " &8[&eХокаге&8]", 300, Material.BLAZE_POWDER),
-        GHOUL("Аниме", "Гуль", " &8[&4Ghoul&8]", 400, Material.WITHER_SKELETON_SKULL);
-
-        public final String category;
-        public final String name;
-        public final String format;
+        public final String categoryId;
         public final int price;
         public final Material icon;
 
-        Suffix(String category, String name, String format, int price, Material icon) {
-            this.category = category;
-            this.name = name;
-            this.format = format;
+        Suffix(String categoryId, int price, Material icon) {
+            this.categoryId = categoryId;
             this.price = price;
             this.icon = icon;
         }
     }
 
     public static void openCategories(Player player) {
-        Inventory gui = Bukkit.createInventory(player, 27, "Категории Суффиксов");
-        gui.setItem(11, new ItemBuilder(Material.NAME_TAG).setName("&eТитулы").build());
-        gui.setItem(13, new ItemBuilder(Material.SLIME_BALL).setName("&aМемы").build());
-        gui.setItem(15, new ItemBuilder(Material.WITHER_SKELETON_SKULL).setName("&4Аниме").build());
-        gui.setItem(22, new ItemBuilder(Material.ARROW).setName("&cНазад").build());
+        String title = color(LanguageManager.getString(player, "lobby.suffix_gui.categories_title"));
+        Inventory gui = Bukkit.createInventory(player, 27, title);
+
+        gui.setItem(11, new ItemBuilder(Material.NAME_TAG).setName(color(LanguageManager.getString(player, "lobby.suffix_gui.cat_titles"))).build());
+        gui.setItem(13, new ItemBuilder(Material.SLIME_BALL).setName(color(LanguageManager.getString(player, "lobby.suffix_gui.cat_memes"))).build());
+        gui.setItem(15, new ItemBuilder(Material.WITHER_SKELETON_SKULL).setName(color(LanguageManager.getString(player, "lobby.suffix_gui.cat_anime"))).build());
+        gui.setItem(22, new ItemBuilder(Material.ARROW).setName(color(LanguageManager.getString(player, "lobby.suffix_gui.back"))).build());
+
         player.openInventory(gui);
     }
 
-    public static void openList(Player player, String category) {
-        Inventory gui = Bukkit.createInventory(player, 36, "Суффиксы: " + category);
+    public static void openList(Player player, String categoryId) {
+        String catName = color(LanguageManager.getString(player, "lobby.suffix_gui.cat_" + categoryId));
+        String title = color(LanguageManager.getString(player, "lobby.suffix_gui.list_title")).replace("%category%", ChatColor.stripColor(catName));
+        Inventory gui = Bukkit.createInventory(player, 36, title);
         int slot = 0;
 
-        // ПОЛУЧАЕМ ТЕКУЩИЙ СУФФИКС ИЗ ГЛОБАЛЬНОЙ СТАТИСТИКИ
         PlayerStats stats = StatsManager.getStats(player);
         String currentFormat = (stats != null && stats.getSuffix() != null) ? stats.getSuffix() : "";
 
         String currentSelected = "DEFAULT";
         for (Suffix s : Suffix.values()) {
-            if (s.format.equals(currentFormat)) currentSelected = s.name();
+            String sFormat = color(LanguageManager.getString(player, "lobby.suffix_gui.list." + s.name().toLowerCase() + ".format"));
+            if (sFormat.equals(currentFormat)) currentSelected = s.name();
         }
 
         Set<String> owned = unlockedSuffixes.getOrDefault(player.getUniqueId(), new HashSet<>(Collections.singletonList("DEFAULT")));
 
         for (Suffix s : Suffix.values()) {
-            if (s.category.equals(category)) {
-                ItemBuilder builder = new ItemBuilder(s.icon).setName("&b" + s.name);
+            if (s.categoryId.equals(categoryId)) {
+                String suffixName = color(LanguageManager.getString(player, "lobby.suffix_gui.list." + s.name().toLowerCase() + ".name"));
+                String rawFormat = color(LanguageManager.getString(player, "lobby.suffix_gui.list." + s.name().toLowerCase() + ".format"));
+
+                ItemBuilder builder = new ItemBuilder(s.icon).setName("&b" + suffixName);
                 List<String> lore = new ArrayList<>();
-                lore.add("&7Отображение: " + player.getName() + toLegacy(s.format));
+
+                String formatLore = color(LanguageManager.getString(player, "lobby.suffix_gui.format")).replace("%format%", player.getName() + rawFormat);
+                lore.add(formatLore);
                 lore.add("");
 
                 if (currentSelected.equals(s.name())) {
-                    lore.add("&aВЫБРАНО");
+                    lore.add(color(LanguageManager.getString(player, "lobby.suffix_gui.selected")));
                     builder.setGlow(true);
                 } else if (owned.contains(s.name())) {
-                    lore.add("&eНажмите, чтобы выбрать");
+                    lore.add(color(LanguageManager.getString(player, "lobby.suffix_gui.click_to_select")));
                 } else {
-                    lore.add("&cЦена: &a" + s.price + " ❇");
-                    lore.add("&7Нажмите, чтобы купить");
+                    lore.add(color(LanguageManager.getString(player, "lobby.suffix_gui.price")).replace("%price%", String.valueOf(s.price)));
+                    lore.add(color(LanguageManager.getString(player, "lobby.suffix_gui.click_to_buy")));
                 }
 
                 builder.setLore(lore);
@@ -91,7 +97,7 @@ public class SuffixGui implements Listener {
             }
         }
 
-        gui.setItem(31, new ItemBuilder(Material.ARROW).setName("&cНазад").build());
+        gui.setItem(31, new ItemBuilder(Material.ARROW).setName(color(LanguageManager.getString(player, "lobby.suffix_gui.back"))).build());
         player.openInventory(gui);
     }
 
@@ -101,30 +107,37 @@ public class SuffixGui implements Listener {
         Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
 
-        if (title.equals("Категории Суффиксов")) {
+        String expCategoriesTitle = color(LanguageManager.getString(player, "lobby.suffix_gui.categories_title"));
+        String expListTitleBase = color(LanguageManager.getString(player, "lobby.suffix_gui.list_title"));
+        String expListPrefix = expListTitleBase.substring(0, expListTitleBase.indexOf("%category%"));
+
+        if (ChatColor.stripColor(title).equals(ChatColor.stripColor(expCategoriesTitle))) {
             event.setCancelled(true);
             if (event.getCurrentItem() == null) return;
             int slot = event.getSlot();
-            if (slot == 11) openList(player, "Титулы");
-            else if (slot == 13) openList(player, "Мемы");
-            else if (slot == 15) openList(player, "Аниме");
+
+            if (slot == 11) openList(player, "titles");
+            else if (slot == 13) openList(player, "memes");
+            else if (slot == 15) openList(player, "anime");
             else if (slot == 22) CustomizationGui.open(player);
+
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-        }
-        else if (title.startsWith("Суффиксы: ")) {
+        } else if (title.startsWith(ChatColor.stripColor(expListPrefix))) {
             event.setCancelled(true);
             if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) return;
+
             if (event.getSlot() == 31) {
                 openCategories(player);
                 return;
             }
 
-            String category = title.replace("Суффиксы: ", "");
-            String itemName = ChatUtil.strip(event.getCurrentItem().getItemMeta().getDisplayName());
-
+            Material clickedType = event.getCurrentItem().getType();
             Suffix clickedSuffix = null;
             for (Suffix s : Suffix.values()) {
-                if (s.name.equals(itemName) && s.category.equals(category)) clickedSuffix = s;
+                if (s.icon == clickedType) {
+                    clickedSuffix = s;
+                    break;
+                }
             }
             if (clickedSuffix == null) return;
 
@@ -132,21 +145,27 @@ public class SuffixGui implements Listener {
             PlayerStats stats = StatsManager.getStats(player);
             if (stats == null) return;
 
+            String rawSuffixName = LanguageManager.getString(player, "lobby.suffix_gui.list." + clickedSuffix.name().toLowerCase() + ".name");
+            String suffixFormat = color(LanguageManager.getString(player, "lobby.suffix_gui.list." + clickedSuffix.name().toLowerCase() + ".format"));
+
             if (owned.contains(clickedSuffix.name())) {
-                // СОХРАНЯЕМ СУФФИКС В ГЛОБАЛЬНУЮ СТАТИСТИКУ!
-                stats.setSuffix(clickedSuffix.format);
-                ChatUtil.sendMessage(player, "&aВы выбрали суффикс: &b" + clickedSuffix.name);
+                stats.setSuffix(suffixFormat);
+                String msg = color(LanguageManager.getString(player, "lobby.suffix_gui.messages.selected").replace("%name%", rawSuffixName));
+                ChatUtil.sendMessage(player, msg);
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-                openList(player, category);
+                openList(player, clickedSuffix.categoryId);
             } else {
                 if (stats.getEmeralds() >= clickedSuffix.price) {
                     stats.setEmeralds(stats.getEmeralds() - clickedSuffix.price);
                     owned.add(clickedSuffix.name());
-                    ChatUtil.sendMessage(player, "&aУспешная покупка! Вы приобрели: &b" + clickedSuffix.name);
+
+                    String msg = color(LanguageManager.getString(player, "lobby.suffix_gui.messages.purchased").replace("%name%", rawSuffixName));
+                    ChatUtil.sendMessage(player, msg);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-                    openList(player, category);
+                    openList(player, clickedSuffix.categoryId);
                 } else {
-                    ChatUtil.sendMessage(player, "&cНедостаточно Изумрудов! Нужно: &a" + clickedSuffix.price + " ❇");
+                    String msg = color(LanguageManager.getString(player, "lobby.suffix_gui.messages.not_enough").replace("%price%", String.valueOf(clickedSuffix.price)));
+                    ChatUtil.sendMessage(player, msg);
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
                 }
             }
@@ -156,11 +175,10 @@ public class SuffixGui implements Listener {
     public static String getActiveSuffix(Player player) {
         PlayerStats stats = StatsManager.getStats(player);
         if (stats == null || stats.getSuffix() == null) return "";
-        return toLegacy(stats.getSuffix());
+        return color(stats.getSuffix());
     }
 
-    private static String toLegacy(String text) {
-        if (text == null) return "";
-        return text.replace("<dark_red>", "&4").replace("</dark_red>", "").replace("<red>", "&c").replace("</red>", "").replace("<gold>", "&6").replace("</gold>", "").replace("<yellow>", "&e").replace("</yellow>", "").replace("<dark_green>", "&2").replace("</dark_green>", "").replace("<green>", "&a").replace("</green>", "").replace("<aqua>", "&b").replace("</aqua>", "").replace("<dark_aqua>", "&3").replace("</dark_aqua>", "").replace("<dark_blue>", "&1").replace("</dark_blue>", "").replace("<blue>", "&9").replace("</blue>", "").replace("<light_purple>", "&d").replace("</light_purple>", "").replace("<dark_purple>", "&5").replace("</dark_purple>", "").replace("<white>", "&f").replace("</white>", "").replace("<gray>", "&7").replace("</gray>", "").replace("<dark_gray>", "&8").replace("</dark_gray>", "").replace("<black>", "&0").replace("</black>", "").replace("<bold>", "&l").replace("</bold>", "").replace("<italic>", "&o").replace("</italic>", "").replace("<strikethrough>", "&m").replace("</strikethrough>", "").replace("<underlined>", "&n").replace("</underlined>", "").replace("<obfuscated>", "&k").replace("</obfuscated>", "").replace("<reset>", "&r").replace("</reset>", "").replaceAll("<[^>]+>", "");
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
     }
 }

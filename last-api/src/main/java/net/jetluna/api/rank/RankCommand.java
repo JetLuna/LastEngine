@@ -1,5 +1,6 @@
 package net.jetluna.api.rank;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.util.ChatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -13,18 +14,21 @@ public class RankCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!sender.isOp()) {
-            ChatUtil.sendMessage(sender, "<red>Нет прав!");
+            Player p = sender instanceof Player ? (Player) sender : null;
+            ChatUtil.sendMessage(sender, LanguageManager.getString(p, "rank.no_permission"));
             return true;
         }
 
+        Player senderPlayer = sender instanceof Player ? (Player) sender : null;
+
         if (args.length != 2) {
-            ChatUtil.sendMessage(sender, "<yellow>Использование: /setrank <ник> <RANK>");
+            ChatUtil.sendMessage(sender, LanguageManager.getString(senderPlayer, "rank.usage"));
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[0]);
         if (target == null) {
-            ChatUtil.sendMessage(sender, "<red>Игрок не найден!");
+            ChatUtil.sendMessage(sender, LanguageManager.getString(senderPlayer, "rank.player_not_found"));
             return true;
         }
 
@@ -35,11 +39,19 @@ public class RankCommand implements CommandExecutor {
             // 2. Выдаем ранг (СТАТИЧЕСКИЙ МЕТОД)
             RankManager.setRank(target, rank);
 
-            ChatUtil.sendMessage(sender, "<green>Игроку " + target.getName() + " выдан ранг " + rank.getName());
-            ChatUtil.sendMessage(target, "<green>Вам выдан ранг " + rank.getPrefix());
+            // Сообщение отправителю (или консоли)
+            String senderMsg = LanguageManager.getString(senderPlayer, "rank.success_sender")
+                    .replace("%player%", target.getName())
+                    .replace("%rank%", rank.getName());
+            ChatUtil.sendMessage(sender, senderMsg);
+
+            // Сообщение игроку, которому выдали ранг
+            String targetMsg = LanguageManager.getString(target, "rank.success_target")
+                    .replace("%rank%", rank.getPrefix());
+            ChatUtil.sendMessage(target, targetMsg);
 
         } catch (IllegalArgumentException e) {
-            ChatUtil.sendMessage(sender, "<red>Такого ранга нет! (PLAYER, ADMIN, DEV...)");
+            ChatUtil.sendMessage(sender, LanguageManager.getString(senderPlayer, "rank.invalid_rank"));
         }
 
         return true;

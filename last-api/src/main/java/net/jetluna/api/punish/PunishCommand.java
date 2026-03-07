@@ -1,5 +1,6 @@
 package net.jetluna.api.punish;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
@@ -12,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 public class PunishCommand implements CommandExecutor {
@@ -27,13 +27,16 @@ public class PunishCommand implements CommandExecutor {
         // --- BANLIST ---
         if (cmd.equals("banlist")) {
             if (adminRank.getWeight() < 7) {
-                ChatUtil.sendMessage(admin, "<red>Нет прав!");
+                LanguageManager.sendMessage(admin, "punish.commands.no_permission");
                 return true;
             }
             Set<String> bans = PunishmentManager.getActiveBans();
-            ChatUtil.sendMessage(admin, "<green>Активные баны (" + bans.size() + "):");
+            String header = LanguageManager.getString(admin, "punish.commands.active_bans_header").replace("%count%", String.valueOf(bans.size()));
+            ChatUtil.sendMessage(admin, header);
+
             for (String banned : bans) {
-                ChatUtil.sendMessage(admin, "<gray>- " + banned);
+                String format = LanguageManager.getString(admin, "punish.commands.active_bans_format").replace("%player%", banned);
+                ChatUtil.sendMessage(admin, format);
             }
             return true;
         }
@@ -41,21 +44,24 @@ public class PunishCommand implements CommandExecutor {
         // --- HISTORY ---
         if (cmd.equals("history")) {
             if (adminRank.getWeight() < 7) {
-                ChatUtil.sendMessage(admin, "<red>Нет прав!");
+                LanguageManager.sendMessage(admin, "punish.commands.no_permission");
                 return true;
             }
             if (args.length < 1) {
-                ChatUtil.sendMessage(admin, "<yellow>Использование: /history <ник>");
+                LanguageManager.sendMessage(admin, "punish.commands.usage_history");
                 return true;
             }
             String target = args[0];
 
-            ChatUtil.sendMessage(admin, "<green>История наказаний " + target + ":");
-            ChatUtil.sendMessage(admin, "<red><bold>BANS:");
+            String header = LanguageManager.getString(admin, "punish.commands.history_header").replace("%player%", target);
+            ChatUtil.sendMessage(admin, header);
+
+            LanguageManager.sendMessage(admin, "punish.commands.history_bans");
             for (String line : PunishmentManager.getHistory(target, "BAN")) {
                 ChatUtil.sendMessage(admin, line);
             }
-            ChatUtil.sendMessage(admin, "<aqua><bold>MUTES:");
+
+            LanguageManager.sendMessage(admin, "punish.commands.history_mutes");
             for (String line : PunishmentManager.getHistory(target, "MUTE")) {
                 ChatUtil.sendMessage(admin, line);
             }
@@ -64,18 +70,18 @@ public class PunishCommand implements CommandExecutor {
 
         // --- KICK / MUTE / BAN / UN... ---
 
-        // Права
         if ((cmd.equals("kick") || cmd.equals("mute") || cmd.equals("unmute")) && adminRank.getWeight() < 7) {
-            ChatUtil.sendMessage(admin, "<red>Нужен ранг JUNIOR+");
+            LanguageManager.sendMessage(admin, "punish.commands.rank_junior");
             return true;
         }
         if ((cmd.equals("ban") || cmd.equals("unban")) && adminRank.getWeight() < 11) {
-            ChatUtil.sendMessage(admin, "<red>Нужен ранг MODER+");
+            LanguageManager.sendMessage(admin, "punish.commands.rank_moder");
             return true;
         }
 
         if (args.length < 1) {
-            ChatUtil.sendMessage(admin, "<yellow>Использование: /" + cmd + " <игрок> ...");
+            String usage = LanguageManager.getString(admin, "punish.commands.usage_punish").replace("%cmd%", cmd);
+            ChatUtil.sendMessage(admin, usage);
             return true;
         }
         String targetName = args[0];
@@ -83,18 +89,18 @@ public class PunishCommand implements CommandExecutor {
         // Снятие
         if (cmd.equals("unmute")) {
             PunishmentManager.unmute(targetName, admin);
-            ChatUtil.sendMessage(admin, "<green>Игрок размучен.");
+            LanguageManager.sendMessage(admin, "punish.commands.unmuted");
             return true;
         }
         if (cmd.equals("unban")) {
             PunishmentManager.unban(targetName, admin);
-            ChatUtil.sendMessage(admin, "<green>Игрок разбанен.");
+            LanguageManager.sendMessage(admin, "punish.commands.unbanned");
             return true;
         }
 
         Player target = Bukkit.getPlayer(targetName);
         if (target != null && !PunishmentManager.canPunish(admin, target)) {
-            ChatUtil.sendMessage(admin, "<red>Нельзя наказать старшего по званию!");
+            LanguageManager.sendMessage(admin, "punish.commands.cannot_punish_higher");
             return true;
         }
 
@@ -103,7 +109,7 @@ public class PunishCommand implements CommandExecutor {
         // KICK
         if (cmd.equals("kick")) {
             if (target == null) {
-                ChatUtil.sendMessage(admin, "<red>Игрок не в сети!");
+                LanguageManager.sendMessage(admin, "punish.commands.player_offline");
                 return true;
             }
             String reason = args.length > 1 ? String.join(" ", Arrays.copyOfRange(args, 1, args.length)) : "Без причины";
@@ -113,12 +119,12 @@ public class PunishCommand implements CommandExecutor {
 
         // MUTE / BAN
         if (args.length < 2) {
-            ChatUtil.sendMessage(admin, "<yellow>Укажите время! (1h, 1d)");
+            LanguageManager.sendMessage(admin, "punish.commands.usage_time");
             return true;
         }
         long time = TimeUtil.parseDuration(args[1]);
         if (time == 0) {
-            ChatUtil.sendMessage(admin, "<red>Неверное время!");
+            LanguageManager.sendMessage(admin, "punish.commands.invalid_time");
             return true;
         }
         String reason = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : "Нарушение";

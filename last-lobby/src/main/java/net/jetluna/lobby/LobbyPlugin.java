@@ -59,6 +59,8 @@ public class LobbyPlugin extends JavaPlugin {
 
         this.flyingPigManager = new FlyingPigManager(this);
         getServer().getPluginManager().registerEvents(this.flyingPigManager, this);
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.LanguageGui(), this);
     }
 
     @Override

@@ -1,9 +1,11 @@
 package net.jetluna.lobby.gui;
 
-import net.jetluna.api.cosmetic.CosmeticGui;
+import net.jetluna.api.lang.LanguageManager;
+import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import net.jetluna.lobby.LobbyGui;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -12,57 +14,61 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CustomizationGui implements Listener {
 
     public static void open(Player player) {
-        Inventory gui = Bukkit.createInventory(player, 45, "Кастомизация");
+        String title = color(LanguageManager.getString(player, "lobby.customization_gui.title"));
+        Inventory gui = Bukkit.createInventory(player, 45, title);
 
-        // --- ВЕРХНИЙ РЯД (3 элемента) ---
         gui.setItem(11, new ItemBuilder(Material.NAME_TAG)
-                .setName("&aСообщения при входе")
-                .setLore("&7Удивите всех своим", "&7появлением на сервере!", "", "&eНажмите, чтобы выбрать")
+                .setName(color(LanguageManager.getString(player, "lobby.customization_gui.joiners.name")))
+                .setLore(colorList(player, "lobby.customization_gui.joiners.lore"))
                 .build());
 
         gui.setItem(13, new ItemBuilder(Material.OAK_SIGN)
-                .setName("&bСуффиксы")
-                .setLore("&7Крутые титулы рядом", "&7с вашим никнеймом.", "", "&eНажмите, чтобы выбрать")
+                .setName(color(LanguageManager.getString(player, "lobby.customization_gui.suffixes.name")))
+                .setLore(colorList(player, "lobby.customization_gui.suffixes.lore"))
                 .build());
 
         gui.setItem(15, new ItemBuilder(Material.BLAZE_POWDER)
-                .setName("&dВизуальные эффекты")
-                .setLore("&7Красивые партиклы,", "&7которые будут летать вокруг вас.", "", "&eНажмите, чтобы выбрать")
+                .setName(color(LanguageManager.getString(player, "lobby.customization_gui.effects.name")))
+                .setLore(colorList(player, "lobby.customization_gui.effects.lore"))
                 .build());
 
-        // --- НИЖНИЙ РЯД (3 элемента) ---
         gui.setItem(20, new ItemBuilder(Material.LEAD)
-                .setName("&6Питомцы")
-                .setLore("&7Верные спутники, которые", "&7будут бегать за вами по пятам.", "", "&eНажмите, чтобы выбрать")
+                .setName(color(LanguageManager.getString(player, "lobby.customization_gui.pets.name")))
+                .setLore(colorList(player, "lobby.customization_gui.pets.lore"))
                 .build());
 
         gui.setItem(22, new ItemBuilder(Material.SLIME_BALL)
-                .setName("&cГаджеты")
-                .setLore("&7Игрушки для безумного", "&7веселья в лобби.", "", "&eНажмите, чтобы выбрать")
+                .setName(color(LanguageManager.getString(player, "lobby.customization_gui.gadgets.name")))
+                .setLore(colorList(player, "lobby.customization_gui.gadgets.lore"))
                 .build());
 
-        // !!! НОВАЯ КНОПКА КОСМЕТИКИ (БАННЕРЫ) !!!
         gui.setItem(24, new ItemBuilder(Material.CYAN_BANNER)
-                .setName("&3Баннеры")
-                .setLore("&7Эпичные флаги и баннеры,", "&7которые носятся за спиной.", "", "&eНажмите, чтобы выбрать")
+                .setName(color(LanguageManager.getString(player, "lobby.customization_gui.banners.name")))
+                .setLore(colorList(player, "lobby.customization_gui.banners.lore"))
                 .build());
 
-        // Кнопка назад в самом низу по центру
-        gui.setItem(40, new ItemBuilder(Material.ARROW).setName("&cНазад").build());
+        gui.setItem(40, new ItemBuilder(Material.ARROW)
+                .setName(color(LanguageManager.getString(player, "lobby.customization_gui.back")))
+                .build());
 
         player.openInventory(gui);
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals("Кастомизация")) return;
-        event.setCancelled(true);
-
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
+
+        String expectedTitle = color(LanguageManager.getString(player, "lobby.customization_gui.title"));
+        if (!ChatColor.stripColor(event.getView().getTitle()).equals(ChatColor.stripColor(expectedTitle))) return;
+
+        event.setCancelled(true);
         if (event.getCurrentItem() == null) return;
 
         int slot = event.getSlot();
@@ -82,12 +88,23 @@ public class CustomizationGui implements Listener {
         } else if (slot == 22) {
             net.jetluna.api.gadget.GadgetsGui.open(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-        } else if (slot == 24) { // ОТКРЫВАЕМ МЕНЮ БАННЕРОВ
+        } else if (slot == 24) {
             net.jetluna.api.cosmetic.CosmeticGui.open(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
         } else if (slot == 40) {
             LobbyGui.openProfile(player);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
         }
+    }
+
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
+    }
+
+    private static List<String> colorList(Player p, String key) {
+        List<String> list = LanguageManager.getList(p, key);
+        if (list == null) return new ArrayList<>();
+        list.replaceAll(s -> ChatColor.translateAlternateColorCodes('&', s));
+        return list;
     }
 }

@@ -1,12 +1,14 @@
 package net.jetluna.api.parkour;
 
 import net.jetluna.api.LastApi;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -35,8 +37,7 @@ public class ParkourManager implements Listener {
     private static final Map<UUID, ParkourSession> activeSessions = new HashMap<>();
     private static final Random random = new Random();
 
-    // --- ДИНАМИЧЕСКАЯ СЕТКА АРЕН ---
-    // Храним координаты занятых ячеек (например, "0,0", "1,0", "-1,2")
+    // Храним координаты занятых ячеек
     private static final Set<String> occupiedGrids = new HashSet<>();
 
     public static boolean isInParkour(Player player) {
@@ -54,7 +55,7 @@ public class ParkourManager implements Listener {
         event.setCancelled(true);
 
         if (isInParkour(player)) {
-            ChatUtil.sendMessage(player, "&cВы уже в паркуре! Прыгайте или упадите, чтобы отменить.");
+            LanguageManager.sendMessage(player, "parkour.already_in");
             return;
         }
 
@@ -62,13 +63,11 @@ public class ParkourManager implements Listener {
     }
 
     public static void startParkour(Player player) {
-        // 1. Вычисляем ячейку сетки, в которой сейчас стоит игрок
         int playerGridX = (int) Math.round(player.getLocation().getX() / 32.0);
         int playerGridZ = (int) Math.round(player.getLocation().getZ() / 32.0);
 
         ParkourArena arena = null;
 
-        // 2. Спиральный поиск ближайшей свободной ячейки (от 0 до 10 радиуса)
         outer:
         for (int radius = 0; radius <= 10; radius++) {
             for (int dx = -radius; dx <= radius; dx++) {
@@ -79,10 +78,7 @@ public class ParkourManager implements Listener {
                         String gridKey = checkX + "," + checkZ;
 
                         if (!occupiedGrids.contains(gridKey)) {
-                            // Нашли свободную ячейку!
                             occupiedGrids.add(gridKey);
-
-                            // Шахматный порядок высот (170 или 190)
                             int startY = ((Math.abs(checkX) + Math.abs(checkZ)) % 2 == 0) ? 170 : 190;
                             arena = new ParkourArena(gridKey, checkX, checkZ, startY);
                             break outer;
@@ -93,7 +89,7 @@ public class ParkourManager implements Listener {
         }
 
         if (arena == null) {
-            ChatUtil.sendMessage(player, "&cСервер перегружен паркуристами! Подождите немного.");
+            LanguageManager.sendMessage(player, "parkour.server_full");
             return;
         }
 
@@ -122,7 +118,7 @@ public class ParkourManager implements Listener {
 
         player.teleport(tpLoc);
 
-        ChatUtil.sendMessage(player, "&aПаркур начался! Способности отключены.");
+        LanguageManager.sendMessage(player, "parkour.started");
         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1f, 1f);
     }
 
@@ -151,8 +147,13 @@ public class ParkourManager implements Listener {
 
             updateDistance(session);
 
+            // --- ЛОКАЛИЗАЦИЯ ACTIONBAR ---
+            String abRaw = LanguageManager.getString(player, "parkour.actionbar")
+                    .replace("%score%", String.valueOf(session.score))
+                    .replace("%distance%", String.valueOf(session.distance));
+
             player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                    net.md_5.bungee.api.chat.TextComponent.fromLegacyText("§eСчет: §6" + session.score + " §8| §eДистанция: §6" + session.distance));
+                    net.md_5.bungee.api.chat.TextComponent.fromLegacyText(toLegacy(abRaw)));
 
             if (session.score >= 50) {
                 winParkour(player, session);
@@ -186,7 +187,7 @@ public class ParkourManager implements Listener {
         if (session != null) {
             session.currentBlock.getBlock().setType(Material.AIR);
             session.nextBlock.getBlock().setType(Material.AIR);
-            occupiedGrids.remove(session.arena.gridKey); // Освобождаем ячейку
+            occupiedGrids.remove(session.arena.gridKey);
         }
     }
 
@@ -197,7 +198,6 @@ public class ParkourManager implements Listener {
         int dz = 0;
         boolean foundValidSpot = false;
 
-        // Ищем прыжок в рамках 16x16
         for (int i = 0; i < 20; i++) {
             double angle = random.nextDouble() * 2 * Math.PI;
             dx = (int) Math.round(Math.cos(angle) * session.distance);
@@ -215,7 +215,6 @@ public class ParkourManager implements Listener {
             }
         }
 
-        // Страховка от вылета за границы
         if (!foundValidSpot) {
             dx = Integer.compare(session.arena.centerX, curLoc.getBlockX()) * session.distance;
             dz = Integer.compare(session.arena.centerZ, curLoc.getBlockZ()) * session.distance;
@@ -263,11 +262,13 @@ public class ParkourManager implements Listener {
         session.currentBlock.getBlock().setType(Material.AIR);
         session.nextBlock.getBlock().setType(Material.AIR);
 
-        occupiedGrids.remove(session.arena.gridKey); // Освобождаем ячейку
+        occupiedGrids.remove(session.arena.gridKey);
 
         player.teleport(session.returnLocation);
         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
-        ChatUtil.sendMessage(player, "&cВы упали! Ваш счет: &e" + session.score);
+
+        String msg = LanguageManager.getString(player, "parkour.failed").replace("%score%", String.valueOf(session.score));
+        ChatUtil.sendMessage(player, msg);
 
         restoreFlight(player);
     }
@@ -277,7 +278,7 @@ public class ParkourManager implements Listener {
         session.currentBlock.getBlock().setType(Material.AIR);
         session.nextBlock.getBlock().setType(Material.AIR);
 
-        occupiedGrids.remove(session.arena.gridKey); // Освобождаем ячейку
+        occupiedGrids.remove(session.arena.gridKey);
 
         player.teleport(session.returnLocation);
         restoreFlight(player);
@@ -295,18 +296,22 @@ public class ParkourManager implements Listener {
             }
             player.getPersistentDataContainer().set(key, PersistentDataType.LONG, currentTime);
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-            ChatUtil.sendMessage(player, "&a&lПОЗДРАВЛЯЕМ! &7Вы прошли паркур и получили &6500 монет&7!");
+
+            LanguageManager.sendMessage(player, "parkour.win_first");
         } else {
             long timeLeft = ONE_DAY - (currentTime - lastTime);
             long hours = timeLeft / 3600000;
             long minutes = (timeLeft % 3600000) / 60000;
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-            ChatUtil.sendMessage(player, "&a&lОТЛИЧНО! &7Вы снова покорили паркур!");
-            ChatUtil.sendMessage(player, "&7Награда будет доступна через &e" + hours + "ч " + minutes + "м&7.");
+
+            LanguageManager.sendMessage(player, "parkour.win_again");
+            String msg = LanguageManager.getString(player, "parkour.cooldown")
+                    .replace("%hours%", String.valueOf(hours))
+                    .replace("%minutes%", String.valueOf(minutes));
+            ChatUtil.sendMessage(player, msg);
         }
     }
 
-    // --- Обновленная Арена ---
     private static class ParkourArena {
         String gridKey;
         int centerX, startY, centerZ, minY;
@@ -317,9 +322,8 @@ public class ParkourManager implements Listener {
             this.centerX = gridX * 32;
             this.centerZ = gridZ * 32;
             this.startY = startY;
-            this.minY = startY - 10; // Паркур не опустится ниже 160 (или 180)
+            this.minY = startY - 10;
 
-            // Задаем рамки 16x16 вокруг центра
             this.minX = centerX - 8;
             this.maxX = centerX + 7;
             this.minZ = centerZ - 8;
@@ -339,5 +343,12 @@ public class ParkourManager implements Listener {
             this.returnLocation = returnLocation;
             this.arena = arena;
         }
+    }
+
+    // --- Метод для конвертации MiniMessage в Legacy для ActionBar ---
+    private static String toLegacy(String text) {
+        if (text == null) return "";
+        String legacy = text.replace("<dark_red>", "&4").replace("</dark_red>", "").replace("<red>", "&c").replace("</red>", "").replace("<gold>", "&6").replace("</gold>", "").replace("<yellow>", "&e").replace("</yellow>", "").replace("<dark_green>", "&2").replace("</dark_green>", "").replace("<green>", "&a").replace("</green>", "").replace("<aqua>", "&b").replace("</aqua>", "").replace("<dark_aqua>", "&3").replace("</dark_aqua>", "").replace("<dark_blue>", "&1").replace("</dark_blue>", "").replace("<blue>", "&9").replace("</blue>", "").replace("<light_purple>", "&d").replace("</light_purple>", "").replace("<dark_purple>", "&5").replace("</dark_purple>", "").replace("<white>", "&f").replace("</white>", "").replace("<gray>", "&7").replace("</gray>", "").replace("<dark_gray>", "&8").replace("</dark_gray>", "").replace("<black>", "&0").replace("</black>", "").replace("<bold>", "&l").replace("</bold>", "").replace("<italic>", "&o").replace("</italic>", "").replace("<strikethrough>", "&m").replace("</strikethrough>", "").replace("<underlined>", "&n").replace("</underlined>", "").replace("<obfuscated>", "&k").replace("</obfuscated>", "").replace("<reset>", "&r").replace("</reset>", "").replaceAll("<[^>]+>", "");
+        return ChatColor.translateAlternateColorCodes('&', legacy);
     }
 }

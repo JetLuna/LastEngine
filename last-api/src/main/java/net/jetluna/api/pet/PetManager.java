@@ -1,8 +1,10 @@
 package net.jetluna.api.pet;
 
 import net.jetluna.api.LastApi;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.util.ChatUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Nameable;
@@ -26,14 +28,14 @@ public class PetManager {
 
         pet.setInvulnerable(true);
         pet.setSilent(true);
-
-        // !!! ФИКС ЗАСТЫВШИХ ПИТОМЦЕВ !!!
-        // Запрещаем серверу сохранять эту сущность в файлы мира при выходе/рестарте
         pet.setPersistent(false);
 
         if (pet instanceof Nameable) {
             pet.setCustomNameVisible(true);
-            String formattedName = ChatUtil.parseLegacy("&eПитомец &7" + player.getName());
+
+            // --- ЛОКАЛИЗАЦИЯ ИМЕНИ ПИТОМЦА ---
+            String rawName = LanguageManager.getString(player, "pets.entity_name").replace("%player%", player.getName());
+            String formattedName = ChatColor.translateAlternateColorCodes('&', toLegacy(rawName));
             ((Nameable) pet).setCustomName(formattedName);
         }
 
@@ -94,11 +96,8 @@ public class PetManager {
                 Location pLoc = player.getLocation();
                 Location eLoc = pet.getLocation();
 
-                // !!! ФИКС ПОЛЕТА !!!
-                // Считаем дистанцию ТОЛЬКО по горизонтали (X и Z). Игнорируем высоту.
                 double dist2D = Math.sqrt(Math.pow(pLoc.getX() - eLoc.getX(), 2) + Math.pow(pLoc.getZ() - eLoc.getZ(), 2));
 
-                // Телепортируем, если игрок улетел по плоскости дальше 20 блоков или сменил мир
                 if (!player.getWorld().equals(pet.getWorld()) || dist2D > 20.0) {
                     pet.teleport(player);
                     continue;
@@ -109,28 +108,24 @@ public class PetManager {
                 if (dist2D > 2.5) {
                     Vector dir;
                     if (isFlyingPet) {
-                        // Летающие питомцы целятся игроку в плечо
                         dir = pLoc.clone().add(0, 1.5, 0).toVector().subtract(eLoc.toVector()).normalize().multiply(0.35);
                     } else {
-                        // Наземные питомцы создают вектор только по плоскости
                         dir = new Vector(pLoc.getX() - eLoc.getX(), 0, pLoc.getZ() - eLoc.getZ()).normalize().multiply(0.35);
 
                         if (pet.isOnGround()) {
-                            // Сканируем блок перед питомцем
                             Location front = eLoc.clone().add(dir.clone().normalize().multiply(0.8));
                             if (front.add(0, 0.5, 0).getBlock().getType().isSolid()) {
-                                dir.setY(0.5); // Автопрыжок
+                                dir.setY(0.5);
                             } else {
-                                dir.setY(pet.getVelocity().getY()); // Обычный бег
+                                dir.setY(pet.getVelocity().getY());
                             }
                         } else {
-                            dir.setY(pet.getVelocity().getY()); // Падение
+                            dir.setY(pet.getVelocity().getY());
                         }
                     }
 
                     pet.setVelocity(dir);
 
-                    // Голова питомца всегда смотрит по направлению движения
                     Location loc = pet.getLocation();
                     loc.setDirection(new Vector(dir.getX(), isFlyingPet ? dir.getY() : 0, dir.getZ()));
                     pet.setRotation(loc.getYaw(), loc.getPitch());
@@ -155,5 +150,12 @@ public class PetManager {
             this.entity = entity;
             this.type = type;
         }
+    }
+
+    // Вспомогательный метод перевода
+    private static String toLegacy(String text) {
+        if (text == null) return "";
+        String legacy = text.replace("<dark_red>", "&4").replace("</dark_red>", "").replace("<red>", "&c").replace("</red>", "").replace("<gold>", "&6").replace("</gold>", "").replace("<yellow>", "&e").replace("</yellow>", "").replace("<dark_green>", "&2").replace("</dark_green>", "").replace("<green>", "&a").replace("</green>", "").replace("<aqua>", "&b").replace("</aqua>", "").replace("<dark_aqua>", "&3").replace("</dark_aqua>", "").replace("<dark_blue>", "&1").replace("</dark_blue>", "").replace("<blue>", "&9").replace("</blue>", "").replace("<light_purple>", "&d").replace("</light_purple>", "").replace("<dark_purple>", "&5").replace("</dark_purple>", "").replace("<white>", "&f").replace("</white>", "").replace("<gray>", "&7").replace("</gray>", "").replace("<dark_gray>", "&8").replace("</dark_gray>", "").replace("<black>", "&0").replace("</black>", "").replace("<bold>", "&l").replace("</bold>", "").replace("<italic>", "&o").replace("</italic>", "").replace("<strikethrough>", "&m").replace("</strikethrough>", "").replace("<underlined>", "&n").replace("</underlined>", "").replace("<obfuscated>", "&k").replace("</obfuscated>", "").replace("<reset>", "&r").replace("</reset>", "").replaceAll("<[^>]+>", "");
+        return legacy;
     }
 }

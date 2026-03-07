@@ -1,5 +1,6 @@
 package net.jetluna.lobby.gui;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.stats.PlayerStats;
@@ -7,6 +8,7 @@ import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -23,44 +25,41 @@ public class JoinerGui implements Listener {
     private static final Map<UUID, String> selectedJoiner = new HashMap<>();
 
     public enum Joiner {
-        DEFAULT("Классика", "Стандарт", "%prefix%%player%%suffix% &eприсоединился к игре", 0, Material.OAK_SIGN),
-        VIP("Классика", "Мажор", "&6%prefix%%player%%suffix% &6почтил нас своим присутствием!", 150, Material.GOLD_INGOT),
+        DEFAULT("classic", 0, Material.OAK_SIGN),
+        VIP("classic", 150, Material.GOLD_INGOT),
+        MEME_FATHER("memes", 300, Material.EMERALD),
+        MEME_CLOWN("memes", 250, Material.SLIME_BALL),
+        DARK_GHOUL("dark", 500, Material.WITHER_SKELETON_SKULL),
+        DARK_BERSERK("dark", 500, Material.NETHERITE_SWORD);
 
-        MEME_FATHER("Мемы", "Здарова, отец", "%prefix%%player%%suffix% &eзалетел на сервер. Здарова, отец!", 300, Material.EMERALD),
-        MEME_CLOWN("Мемы", "Цирк приехал", "&cКлоун %prefix%%player%%suffix% &eвышел на арену!", 250, Material.SLIME_BALL),
-
-        DARK_GHOUL("Дарк", "1000-7", "&8[&cGhoul&8] %prefix%%player%%suffix% &4вышел из тени. 1000-7...", 500, Material.WITHER_SKELETON_SKULL),
-        DARK_BERSERK("Дарк", "Черный мечник", "&8[&4Клеймо&8] %prefix%%player%%suffix% &8обнажил Убийцу Драконов.", 500, Material.NETHERITE_SWORD);
-
-        public final String category;
-        public final String name;
-        public final String format;
+        public final String categoryId;
         public final int price;
         public final Material icon;
 
-        Joiner(String category, String name, String format, int price, Material icon) {
-            this.category = category;
-            this.name = name;
-            this.format = format;
+        Joiner(String categoryId, int price, Material icon) {
+            this.categoryId = categoryId;
             this.price = price;
             this.icon = icon;
         }
     }
 
     public static void openCategories(Player player) {
-        Inventory gui = Bukkit.createInventory(player, 27, "Категории Джоинеров");
+        String title = color(LanguageManager.getString(player, "lobby.joiner_gui.categories_title"));
+        Inventory gui = Bukkit.createInventory(player, 27, title);
 
-        gui.setItem(11, new ItemBuilder(Material.BOOK).setName("&eКлассика").build());
-        gui.setItem(13, new ItemBuilder(Material.SLIME_BALL).setName("&aМемы").build());
-        gui.setItem(15, new ItemBuilder(Material.WITHER_SKELETON_SKULL).setName("&4Дарк").build());
-
-        gui.setItem(22, new ItemBuilder(Material.ARROW).setName("&cНазад").build());
+        gui.setItem(11, new ItemBuilder(Material.BOOK).setName(color(LanguageManager.getString(player, "lobby.joiner_gui.cat_classic"))).build());
+        gui.setItem(13, new ItemBuilder(Material.SLIME_BALL).setName(color(LanguageManager.getString(player, "lobby.joiner_gui.cat_memes"))).build());
+        gui.setItem(15, new ItemBuilder(Material.WITHER_SKELETON_SKULL).setName(color(LanguageManager.getString(player, "lobby.joiner_gui.cat_dark"))).build());
+        gui.setItem(22, new ItemBuilder(Material.ARROW).setName(color(LanguageManager.getString(player, "lobby.joiner_gui.back"))).build());
 
         player.openInventory(gui);
     }
 
-    public static void openList(Player player, String category) {
-        Inventory gui = Bukkit.createInventory(player, 36, "Джоинеры: " + category);
+    public static void openList(Player player, String categoryId) {
+        String catName = color(LanguageManager.getString(player, "lobby.joiner_gui.cat_" + categoryId));
+        String title = color(LanguageManager.getString(player, "lobby.joiner_gui.list_title")).replace("%category%", ChatColor.stripColor(catName));
+
+        Inventory gui = Bukkit.createInventory(player, 36, title);
         int slot = 0;
 
         String currentSelected = selectedJoiner.getOrDefault(player.getUniqueId(), "DEFAULT");
@@ -68,32 +67,34 @@ public class JoinerGui implements Listener {
 
         Rank rank = RankManager.getRank(player);
         String rawPrefix = rank.getWeight() == 1 ? "&7" : rank.getPrefix();
-        String legacyPrefix = toLegacy(rawPrefix);
-
-        // Получаем суффикс
-        String suffix = SuffixGui.getActiveSuffix(player).replace("&", "§");
+        String legacyPrefix = color(rawPrefix);
+        String suffix = SuffixGui.getActiveSuffix(player);
 
         for (Joiner j : Joiner.values()) {
-            if (j.category.equals(category)) {
-                ItemBuilder builder = new ItemBuilder(j.icon).setName("&b" + j.name);
+            if (j.categoryId.equals(categoryId)) {
+                String joinerName = color(LanguageManager.getString(player, "lobby.joiner_gui.list." + j.name().toLowerCase() + ".name"));
+                String rawFormatFromConfig = LanguageManager.getString(player, "lobby.joiner_gui.list." + j.name().toLowerCase() + ".format");
 
+                ItemBuilder builder = new ItemBuilder(j.icon).setName("&b" + joinerName);
                 List<String> lore = new ArrayList<>();
-                // !!! ИСПРАВЛЕНИЕ: Теперь мы заменяем %suffix% !!!
-                String rawFormat = j.format.replace("%player%", player.getName())
+
+                String rawFormat = rawFormatFromConfig
+                        .replace("%player%", player.getName())
                         .replace("%prefix%", legacyPrefix)
                         .replace("%suffix%", suffix);
 
-                lore.add("&7Формат: " + toLegacy(rawFormat));
+                String formatLore = color(LanguageManager.getString(player, "lobby.joiner_gui.format")).replace("%format%", color(rawFormat));
+                lore.add(formatLore);
                 lore.add("");
 
                 if (currentSelected.equals(j.name())) {
-                    lore.add("&aВЫБРАНО");
+                    lore.add(color(LanguageManager.getString(player, "lobby.joiner_gui.selected")));
                     builder.setGlow(true);
                 } else if (owned.contains(j.name())) {
-                    lore.add("&eНажмите, чтобы выбрать");
+                    lore.add(color(LanguageManager.getString(player, "lobby.joiner_gui.click_to_select")));
                 } else {
-                    lore.add("&cЦена: &a" + j.price + " ❇");
-                    lore.add("&7Нажмите, чтобы купить");
+                    lore.add(color(LanguageManager.getString(player, "lobby.joiner_gui.price")).replace("%price%", String.valueOf(j.price)));
+                    lore.add(color(LanguageManager.getString(player, "lobby.joiner_gui.click_to_buy")));
                 }
 
                 builder.setLore(lore);
@@ -101,7 +102,7 @@ public class JoinerGui implements Listener {
             }
         }
 
-        gui.setItem(31, new ItemBuilder(Material.ARROW).setName("&cНазад").build());
+        gui.setItem(31, new ItemBuilder(Material.ARROW).setName(color(LanguageManager.getString(player, "lobby.joiner_gui.back"))).build());
         player.openInventory(gui);
     }
 
@@ -111,18 +112,23 @@ public class JoinerGui implements Listener {
         Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
 
-        if (title.equals("Категории Джоинеров")) {
+        String expCategoriesTitle = color(LanguageManager.getString(player, "lobby.joiner_gui.categories_title"));
+        String expListTitleBase = color(LanguageManager.getString(player, "lobby.joiner_gui.list_title"));
+        String expListPrefix = expListTitleBase.substring(0, expListTitleBase.indexOf("%category%"));
+
+        if (ChatColor.stripColor(title).equals(ChatColor.stripColor(expCategoriesTitle))) {
             event.setCancelled(true);
             if (event.getCurrentItem() == null) return;
             int slot = event.getSlot();
 
-            if (slot == 11) openList(player, "Классика");
-            else if (slot == 13) openList(player, "Мемы");
-            else if (slot == 15) openList(player, "Дарк");
+            if (slot == 11) openList(player, "classic");
+            else if (slot == 13) openList(player, "memes");
+            else if (slot == 15) openList(player, "dark");
             else if (slot == 22) CustomizationGui.open(player);
 
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-        } else if (title.startsWith("Джоинеры: ")) {
+        }
+        else if (title.startsWith(ChatColor.stripColor(expListPrefix))) {
             event.setCancelled(true);
             if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) return;
 
@@ -131,33 +137,38 @@ public class JoinerGui implements Listener {
                 return;
             }
 
-            String category = title.replace("Джоинеры: ", "");
-            String itemName = ChatUtil.strip(event.getCurrentItem().getItemMeta().getDisplayName());
-
+            Material clickedType = event.getCurrentItem().getType();
             Joiner clickedJoiner = null;
             for (Joiner j : Joiner.values()) {
-                if (j.name.equals(itemName) && j.category.equals(category)) clickedJoiner = j;
+                if (j.icon == clickedType) {
+                    clickedJoiner = j;
+                    break;
+                }
             }
             if (clickedJoiner == null) return;
 
             Set<String> owned = unlockedJoiners.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>(Collections.singletonList("DEFAULT")));
+            String rawJoinerName = LanguageManager.getString(player, "lobby.joiner_gui.list." + clickedJoiner.name().toLowerCase() + ".name");
 
             if (owned.contains(clickedJoiner.name())) {
                 selectedJoiner.put(player.getUniqueId(), clickedJoiner.name());
-                ChatUtil.sendMessage(player, "&aВы выбрали сообщение: &b" + clickedJoiner.name);
+                String msg = color(LanguageManager.getString(player, "lobby.joiner_gui.messages.selected").replace("%name%", rawJoinerName));
+                ChatUtil.sendMessage(player, msg);
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-                openList(player, category);
+                openList(player, clickedJoiner.categoryId);
             } else {
                 PlayerStats stats = StatsManager.getStats(player);
                 if (stats.getEmeralds() >= clickedJoiner.price) {
                     stats.setEmeralds(stats.getEmeralds() - clickedJoiner.price);
                     owned.add(clickedJoiner.name());
 
-                    ChatUtil.sendMessage(player, "&aУспешная покупка! Вы приобрели: &b" + clickedJoiner.name);
+                    String msg = color(LanguageManager.getString(player, "lobby.joiner_gui.messages.purchased").replace("%name%", rawJoinerName));
+                    ChatUtil.sendMessage(player, msg);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-                    openList(player, category);
+                    openList(player, clickedJoiner.categoryId);
                 } else {
-                    ChatUtil.sendMessage(player, "&cУ вас недостаточно Изумрудов! Нужно: &a" + clickedJoiner.price + " ❇");
+                    String msg = color(LanguageManager.getString(player, "lobby.joiner_gui.messages.not_enough").replace("%price%", String.valueOf(clickedJoiner.price)));
+                    ChatUtil.sendMessage(player, msg);
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
                 }
             }
@@ -166,34 +177,10 @@ public class JoinerGui implements Listener {
 
     public static String getActiveMessage(Player player) {
         String id = selectedJoiner.getOrDefault(player.getUniqueId(), "DEFAULT");
-        return Joiner.valueOf(id).format;
+        return color(LanguageManager.getString(player, "lobby.joiner_gui.list." + id.toLowerCase() + ".format"));
     }
 
-    public static String toLegacy(String text) {
-        if (text == null) return "";
-        return text
-                .replace("<dark_red>", "&4").replace("</dark_red>", "")
-                .replace("<red>", "&c").replace("</red>", "")
-                .replace("<gold>", "&6").replace("</gold>", "")
-                .replace("<yellow>", "&e").replace("</yellow>", "")
-                .replace("<dark_green>", "&2").replace("</dark_green>", "")
-                .replace("<green>", "&a").replace("</green>", "")
-                .replace("<aqua>", "&b").replace("</aqua>", "")
-                .replace("<dark_aqua>", "&3").replace("</dark_aqua>", "")
-                .replace("<dark_blue>", "&1").replace("</dark_blue>", "")
-                .replace("<blue>", "&9").replace("</blue>", "")
-                .replace("<light_purple>", "&d").replace("</light_purple>", "")
-                .replace("<dark_purple>", "&5").replace("</dark_purple>", "")
-                .replace("<white>", "&f").replace("</white>", "")
-                .replace("<gray>", "&7").replace("</gray>", "")
-                .replace("<dark_gray>", "&8").replace("</dark_gray>", "")
-                .replace("<black>", "&0").replace("</black>", "")
-                .replace("<bold>", "&l").replace("</bold>", "")
-                .replace("<italic>", "&o").replace("</italic>", "")
-                .replace("<strikethrough>", "&m").replace("</strikethrough>", "")
-                .replace("<underlined>", "&n").replace("</underlined>", "")
-                .replace("<obfuscated>", "&k").replace("</obfuscated>", "")
-                .replace("<reset>", "&r").replace("</reset>", "")
-                .replaceAll("<[^>]+>", ""); // !!! УБИВАЕТ ВСЕ НЕИЗВЕСТНЫЕ ТЕГИ !!!
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
     }
 }

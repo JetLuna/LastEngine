@@ -1,5 +1,6 @@
 package net.jetluna.api.stream;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -15,19 +16,22 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class StreamsGui implements Listener {
 
     public static void open(Player player) {
-        Inventory gui = Bukkit.createInventory(player, 27, "Прямые трансляции");
+        String title = color(LanguageManager.getString(player, "stream.gui.title"));
+        Inventory gui = Bukkit.createInventory(player, 27, title);
 
         Map<String, String> streams = StreamManager.getActiveStreams();
 
         if (streams.isEmpty()) {
             gui.setItem(13, new ItemBuilder(Material.BARRIER)
-                    .setName("&cВ данный момент стримов нет")
-                    .setLore("&7Возвращайтесь позже!")
+                    .setName(color(LanguageManager.getString(player, "stream.gui.empty_name")))
+                    .setLore(colorList(player, "stream.gui.empty_lore"))
                     .build());
         } else {
             int slot = 0;
@@ -37,20 +41,16 @@ public class StreamsGui implements Listener {
                 String streamerName = entry.getKey();
                 String url = entry.getValue();
 
-                // Делаем платформу более понятной по ссылке
-                String platform = url.contains("twitch.tv") ? "&dTwitch" : (url.contains("youtube") ? "&cYouTube" : "&fТрансляция");
+                String platformType = url.contains("twitch.tv") ? "twitch" : (url.contains("youtube") ? "youtube" : "other");
+                String platformStr = color(LanguageManager.getString(player, "stream.gui.platforms." + platformType));
 
-// Создаем предмет без .setSkullOwner
+                List<String> lore = colorList(player, "stream.gui.item_lore");
+                lore.replaceAll(s -> s.replace("%platform%", platformStr));
+
                 org.bukkit.inventory.ItemStack headItem = new ItemBuilder(Material.PLAYER_HEAD)
                         .setName("&b" + streamerName)
-                        .setLore(
-                                "&7Платформа: " + platform,
-                                "",
-                                "&eНажмите, чтобы получить",
-                                "&eссылку в чат!"
-                        ).build();
+                        .setLore(lore).build();
 
-                // Применяем текстуру головы стандартным API Bukkit
                 org.bukkit.inventory.meta.ItemMeta meta = headItem.getItemMeta();
                 if (meta instanceof org.bukkit.inventory.meta.SkullMeta) {
                     ((org.bukkit.inventory.meta.SkullMeta) meta).setOwner(streamerName);
@@ -66,12 +66,14 @@ public class StreamsGui implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals("Прямые трансляции")) return;
+        Player player = (Player) event.getWhoClicked();
+        String expectedTitle = color(LanguageManager.getString(player, "stream.gui.title"));
+
+        if (!ChatColor.stripColor(event.getView().getTitle()).equals(ChatColor.stripColor(expectedTitle))) return;
         event.setCancelled(true);
 
         if (event.getCurrentItem() == null || event.getCurrentItem().getType() != Material.PLAYER_HEAD) return;
 
-        Player player = (Player) event.getWhoClicked();
         String streamerName = ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName());
         String url = StreamManager.getActiveStreams().get(streamerName);
 
@@ -79,12 +81,28 @@ public class StreamsGui implements Listener {
             player.closeInventory();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
 
-            // Отправляем кликабельную ссылку лично игроку
-            TextComponent link = new TextComponent(ChatColor.translateAlternateColorCodes('&', "&8[&bСтримы&8] &fСсылка на стрим &b" + streamerName + "&f: &e&n" + url));
+            String chatLinkRaw = color(LanguageManager.getString(player, "stream.gui.chat_link")
+                    .replace("%streamer%", streamerName)
+                    .replace("%url%", url));
+
+            String hoverText = color(LanguageManager.getString(player, "stream.announcement.hover_text"));
+
+            TextComponent link = new TextComponent(chatLinkRaw);
             link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-            link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', "&7Открыть трансляцию"))));
+            link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(hoverText)));
 
             player.spigot().sendMessage(link);
         }
+    }
+
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
+    }
+
+    private static List<String> colorList(Player p, String key) {
+        List<String> list = LanguageManager.getList(p, key);
+        if (list == null) return new ArrayList<>();
+        list.replaceAll(s -> ChatColor.translateAlternateColorCodes('&', s));
+        return list;
     }
 }

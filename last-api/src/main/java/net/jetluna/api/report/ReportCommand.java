@@ -1,5 +1,6 @@
 package net.jetluna.api.report;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
@@ -18,19 +19,17 @@ public class ReportCommand implements CommandExecutor {
         Player player = (Player) sender;
         Rank rank = RankManager.getRank(player);
 
-        // --- КОМАНДА /REPORTS (Открываем всегда 1-ю страницу) ---
         if (label.equalsIgnoreCase("reports")) {
             if (rank.getWeight() >= 7) {
                 ReportsGui.open(player, 1);
             } else {
-                ChatUtil.sendMessage(player, "&cУ вас нет прав для просмотра жалоб.");
+                LanguageManager.sendMessage(player, "report.commands.no_permission");
             }
             return true;
         }
 
-        // --- КОМАНДА /REPORT ---
         if (args.length < 2) {
-            ChatUtil.sendMessage(player, "&cИспользование: /report <ник> <причина>");
+            LanguageManager.sendMessage(player, "report.commands.usage");
             return true;
         }
 
@@ -43,27 +42,33 @@ public class ReportCommand implements CommandExecutor {
         String reason = reasonBuilder.toString().trim();
 
         if (player.getName().equalsIgnoreCase(targetName)) {
-            ChatUtil.sendMessage(player, "&cВы не можете отправить жалобу на самого себя!");
+            LanguageManager.sendMessage(player, "report.commands.self_report");
             return true;
         }
 
-        // !!! НОВОЕ: Проверка на дубликат жалобы от этого же игрока !!!
         boolean alreadyReported = ReportManager.getReportsFor(targetName).stream()
                 .anyMatch(r -> r.sender.equalsIgnoreCase(player.getName()));
 
         if (alreadyReported) {
-            ChatUtil.sendMessage(player, "&cВы уже отправили жалобу на игрока &e" + targetName + "&c! Дождитесь, пока администрация её проверит.");
+            String msg = LanguageManager.getString(player, "report.commands.already_reported").replace("%player%", targetName);
+            ChatUtil.sendMessage(player, msg);
             return true;
         }
 
-        // Добавляем репорт в систему
         ReportManager.addReport(player.getName(), targetName, reason);
-        ChatUtil.sendMessage(player, "&aВаша жалоба на игрока &e" + targetName + " &aуспешно отправлена!");
+        String successMsg = LanguageManager.getString(player, "report.commands.success").replace("%player%", targetName);
+        ChatUtil.sendMessage(player, successMsg);
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (RankManager.getRank(p).getWeight() >= 7) {
-                ChatUtil.sendMessage(p, "&8[&cЖалоба&8] &fОт &e" + player.getName() + " &fна &c" + targetName);
-                ChatUtil.sendMessage(p, "&8[&cЖалоба&8] &fПричина: &7" + reason);
+                String alert1 = LanguageManager.getString(p, "report.commands.staff_alert_1")
+                        .replace("%sender%", player.getName())
+                        .replace("%target%", targetName);
+                String alert2 = LanguageManager.getString(p, "report.commands.staff_alert_2")
+                        .replace("%reason%", reason);
+
+                ChatUtil.sendMessage(p, alert1);
+                ChatUtil.sendMessage(p, alert2);
             }
         }
 

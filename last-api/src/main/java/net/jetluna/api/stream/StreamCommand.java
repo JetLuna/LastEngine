@@ -1,6 +1,7 @@
 package net.jetluna.api.stream;
 
 import net.jetluna.api.LastApi;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
@@ -32,64 +33,61 @@ public class StreamCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            ChatUtil.sendMessage(player, "&eИспользование:");
-            if (rank.getWeight() >= 12) ChatUtil.sendMessage(player, "&e/stream link <ник> <ссылка> &7- Привязать канал");
+            LanguageManager.sendMessage(player, "stream.commands.usage_header");
+            if (rank.getWeight() >= 12) LanguageManager.sendMessage(player, "stream.commands.usage_link");
             if (rank.getWeight() >= 6) {
-                ChatUtil.sendMessage(player, "&e/stream add <ссылка> &7- Опубликовать стрим");
-                ChatUtil.sendMessage(player, "&e/stream stop &7- Завершить стрим");
+                LanguageManager.sendMessage(player, "stream.commands.usage_add");
+                LanguageManager.sendMessage(player, "stream.commands.usage_stop");
             }
             return true;
         }
 
-        // --- ПРИВЯЗКА КАНАЛА ---
         if (args[0].equalsIgnoreCase("link") && rank.getWeight() >= 12) {
             if (args.length < 3) {
-                ChatUtil.sendMessage(player, "&cИспользование: /stream link <ник> <ссылка на канал>");
+                LanguageManager.sendMessage(player, "stream.commands.link_usage");
                 return true;
             }
             String target = args[1];
             String url = args[2];
             StreamManager.linkChannel(target, url);
-            ChatUtil.sendMessage(player, "&aКанал &e" + url + " &aуспешно добавлен игроку &e" + target);
+
+            String msg = LanguageManager.getString(player, "stream.commands.link_success")
+                    .replace("%url%", url)
+                    .replace("%player%", target);
+            ChatUtil.sendMessage(player, msg);
             return true;
         }
 
-        // --- РУЧНАЯ ОСТАНОВКА СТРИМА ---
         if (args[0].equalsIgnoreCase("stop") && rank.getWeight() >= 6) {
             if (StreamManager.getActiveStreams().containsKey(player.getName())) {
                 StreamManager.removeActiveStream(player.getName());
-                ChatUtil.sendMessage(player, "&aВаш стрим успешно удален из списка активных!");
+                LanguageManager.sendMessage(player, "stream.commands.stop_success");
             } else {
-                ChatUtil.sendMessage(player, "&cУ вас нет запущенных стримов.");
+                LanguageManager.sendMessage(player, "stream.commands.stop_fail");
             }
             return true;
         }
 
-        // --- ПУБЛИКАЦИЯ СТРИМА ---
         if (args[0].equalsIgnoreCase("add") && rank.getWeight() >= 6) {
             if (args.length < 2) {
-                ChatUtil.sendMessage(player, "&cИспользование: /stream add <полная ссылка на стрим>");
+                LanguageManager.sendMessage(player, "stream.commands.add_usage");
                 return true;
             }
 
             Set<String> linkedChannels = StreamManager.getLinkedChannels(player.getName());
             if (linkedChannels == null || linkedChannels.isEmpty()) {
-                ChatUtil.sendMessage(player, "&cВаш аккаунт не привязан ни к одному каналу! Обратитесь к администрации.");
+                LanguageManager.sendMessage(player, "stream.commands.add_no_links");
                 return true;
             }
 
             String url = args[1].toLowerCase();
 
-            // --- УМНАЯ ПРОВЕРКА ССЫЛОК ---
             boolean isValid = false;
             for (String linked : linkedChannels) {
-                // 1. Строгая проверка (для Twitch и кастомных ссылок)
                 if (url.contains(linked)) {
                     isValid = true;
                     break;
                 }
-
-                // 2. Исключение для YouTube (Разрешаем форматы /live/ и /watch?)
                 if (linked.contains("youtube.com") || linked.contains("youtu.be")) {
                     if (url.contains("youtube.com/live/") || url.contains("youtube.com/watch") || url.contains("youtu.be/")) {
                         isValid = true;
@@ -99,13 +97,12 @@ public class StreamCommand implements CommandExecutor {
             }
 
             if (!isValid) {
-                ChatUtil.sendMessage(player, "&cОшибка! Ссылка не совпадает ни с одним из ваших привязанных каналов.");
+                LanguageManager.sendMessage(player, "stream.commands.add_invalid");
                 return true;
             }
 
             StreamManager.addActiveStream(player.getName(), args[1]);
 
-            // АВТО-УДАЛЕНИЕ через 2 часа
             Bukkit.getScheduler().runTaskLaterAsynchronously(LastApi.getInstance(), () -> {
                 StreamManager.removeActiveStream(player.getName());
             }, 144000L);
@@ -119,14 +116,17 @@ public class StreamCommand implements CommandExecutor {
 
     private void announceStream(Player streamer, String url) {
         String separator = ChatColor.translateAlternateColorCodes('&', "&d================================================");
-        String title = ChatColor.translateAlternateColorCodes('&', "  &b&lПРЯМОЙ ЭФИР &8| &f" + streamer.getName());
-        String subtitle = ChatColor.translateAlternateColorCodes('&', "  &7Игрок запустил стрим на проекте! Залетай!");
-
-        TextComponent link = new TextComponent(ChatColor.translateAlternateColorCodes('&', "  &e&nНажми, чтобы перейти на стрим ➔"));
-        link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-        link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, net.md_5.bungee.api.chat.TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', "&7Открыть трансляцию"))));
 
         for (Player p : Bukkit.getOnlinePlayers()) {
+            String title = color(LanguageManager.getString(p, "stream.announcement.title").replace("%streamer%", streamer.getName()));
+            String subtitle = color(LanguageManager.getString(p, "stream.announcement.subtitle"));
+            String linkText = color(LanguageManager.getString(p, "stream.announcement.link_text"));
+            String hoverText = color(LanguageManager.getString(p, "stream.announcement.hover_text"));
+
+            TextComponent link = new TextComponent(linkText);
+            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
+            link.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, net.md_5.bungee.api.chat.TextComponent.fromLegacyText(hoverText)));
+
             p.sendMessage(separator);
             p.sendMessage(title);
             p.sendMessage(subtitle);
@@ -135,5 +135,9 @@ public class StreamCommand implements CommandExecutor {
             p.sendMessage(separator);
             p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 0.8f, 1.5f);
         }
+    }
+
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
     }
 }

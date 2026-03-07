@@ -9,6 +9,7 @@ import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import net.jetluna.lobby.gui.SettingsGui;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -19,6 +20,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LobbyListener implements Listener {
 
@@ -42,21 +46,18 @@ public class LobbyListener implements Listener {
 
         // Джоинеры (Сообщения при входе)
         Rank rank = RankManager.getRank(player);
-        String rawPrefix = rank.getWeight() == 1 ? "&7" : rank.getPrefix();
-        String legacyPrefix = net.jetluna.lobby.gui.JoinerGui.toLegacy(rawPrefix);
+        String prefix = color(rank.getPrefix());
 
         // Получаем суффикс из ГЛОБАЛЬНОЙ статистики
         PlayerStats stats = StatsManager.getStats(player);
-        String suffix = (stats != null && stats.getSuffix() != null) ? stats.getSuffix().replace("&", "§") : "";
+        String suffix = (stats != null && stats.getSuffix() != null) ? color(stats.getSuffix()) : "";
 
-        // Склеиваем всё вместе
-        String joinMsg = net.jetluna.lobby.gui.JoinerGui.getActiveMessage(player)
+        // Склеиваем всё вместе (через наш новый color)
+        String joinMsg = color(net.jetluna.lobby.gui.JoinerGui.getActiveMessage(player))
                 .replace("%player%", player.getName())
-                .replace("%prefix%", legacyPrefix)
-                .replace("%suffix%", suffix)
-                .replace("&", "§");
+                .replace("%prefix%", prefix)
+                .replace("%suffix%", suffix);
 
-        // ПЕРЕДАЕМ СООБЩЕНИЕ НАПРЯМУЮ СЕРВЕРУ
         event.setJoinMessage(joinMsg);
 
         // Включаем полет/прыжки если надо
@@ -65,28 +66,22 @@ public class LobbyListener implements Listener {
         // Оповещение стаффа
         net.jetluna.api.staff.StaffNotifier.notifyJoin(player, suffix);
 
-        // !!! СПАВН ПИТОМЦА ПРИ ВХОДЕ !!!
+        // СПАВН ПИТОМЦА ПРИ ВХОДЕ
         if (stats != null && stats.getActivePet() != null && !stats.getActivePet().isEmpty()) {
             try {
-                // Получаем тип питомца из базы данных
                 net.jetluna.api.pet.PetType type = net.jetluna.api.pet.PetType.valueOf(stats.getActivePet());
-
-                // Делаем задержку полсекунды, чтобы мир вокруг игрока прогрузился
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (player.isOnline()) { // Проверяем, не вышел ли игрок за эти полсекунды
+                    if (player.isOnline()) {
                         net.jetluna.api.pet.PetManager.spawnPet(player, type);
                     }
                 }, 10L);
-            } catch (IllegalArgumentException ignored) {
-                // Если в базе записан старый/удаленный тип питомца, ничего не делаем
-            }
+            } catch (IllegalArgumentException ignored) {}
         }
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         event.quitMessage(null);
-
         net.jetluna.api.pet.PetManager.removePet(event.getPlayer());
     }
 
@@ -140,8 +135,8 @@ public class LobbyListener implements Listener {
     private void toggleVisibility(Player player, ItemStack item) {
         if (item.getType() == Material.LIME_DYE) {
             ItemStack disabled = new ItemBuilder(Material.GRAY_DYE)
-                    .setName(LanguageManager.getString(player, "lobby.items.visibility.disabled.name"))
-                    .setLore(LanguageManager.getList(player, "lobby.items.visibility.disabled.lore"))
+                    .setName(color(LanguageManager.getString(player, "lobby.items.visibility.disabled.name")))
+                    .setLore(colorList(player, "lobby.items.visibility.disabled.lore"))
                     .build();
             player.getInventory().setItemInMainHand(disabled);
             for (Player target : Bukkit.getOnlinePlayers()) {
@@ -150,8 +145,8 @@ public class LobbyListener implements Listener {
             LanguageManager.sendMessage(player, "lobby.messages.visibility_hide");
         } else {
             ItemStack enabled = new ItemBuilder(Material.LIME_DYE)
-                    .setName(LanguageManager.getString(player, "lobby.items.visibility.enabled.name"))
-                    .setLore(LanguageManager.getList(player, "lobby.items.visibility.enabled.lore"))
+                    .setName(color(LanguageManager.getString(player, "lobby.items.visibility.enabled.name")))
+                    .setLore(colorList(player, "lobby.items.visibility.enabled.lore"))
                     .build();
             player.getInventory().setItemInMainHand(enabled);
             for (Player target : Bukkit.getOnlinePlayers()) {
@@ -216,7 +211,6 @@ public class LobbyListener implements Listener {
         }
     }
 
-    // ЗАЩИТА УРОНА И ГОЛОДА
     @EventHandler
     public void onDamage(org.bukkit.event.entity.EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
@@ -238,14 +232,24 @@ public class LobbyListener implements Listener {
         event.setFoodLevel(20);
     }
 
-    // Отключаем создание снега питомцами-снеговиками
     @EventHandler
     public void onEntityBlockForm(org.bukkit.event.block.EntityBlockFormEvent event) {
         if (event.getEntity() instanceof org.bukkit.entity.Snowman) {
-            // Если это наш питомец (проверяем по имени), отменяем спавн снега
             if (event.getEntity().getCustomName() != null && event.getEntity().getCustomName().contains("Питомец")) {
                 event.setCancelled(true);
             }
         }
+    }
+
+    // Вспомогательные методы для парсинга цветов
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
+    }
+
+    private static List<String> colorList(Player p, String key) {
+        List<String> list = LanguageManager.getList(p, key);
+        if (list == null) return new ArrayList<>();
+        list.replaceAll(s -> ChatColor.translateAlternateColorCodes('&', s));
+        return list;
     }
 }

@@ -1,5 +1,6 @@
 package net.jetluna.api.cosmetic;
 
+import net.jetluna.api.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -14,35 +15,51 @@ import java.util.List;
 public class CosmeticGui {
 
     public static void open(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 36, "Косметика: Баннеры");
+        String title = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.gui.title"));
+        Inventory inv = Bukkit.createInventory(null, 36, title);
+
+        String free = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.status.free"));
+        String equip = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.status.equip"));
+        String bought = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.status.bought"));
+        String buy = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.status.buy"));
 
         // --- ВЕРХНИЙ РЯД (Бесплатные) ---
-        inv.setItem(11, applyLore(CosmeticManager.getLastEngineBanner(), "§7Стандартный флаг", "", "§aБесплатно!", "§eКликни, чтобы надеть"));
-        inv.setItem(13, applyLore(CosmeticManager.getPirateBanner(), "§7Йо-хо-хо!", "", "§aБесплатно!", "§eКликни, чтобы надеть"));
-        inv.setItem(15, applyLore(CosmeticManager.getRoyalBanner(), "§7Для истинных лордов", "", "§aБесплатно!", "§eКликни, чтобы надеть"));
+        String stLore = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.banners.standard.lore"));
+        inv.setItem(11, applyLore(CosmeticManager.getLastEngineBanner(player), stLore, "", free, equip));
+
+        String piLore = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.banners.pirate.lore"));
+        inv.setItem(13, applyLore(CosmeticManager.getPirateBanner(player), piLore, "", free, equip));
+
+        String roLore = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.banners.royal.lore"));
+        inv.setItem(15, applyLore(CosmeticManager.getRoyalBanner(player), roLore, "", free, equip));
 
         // --- НИЖНИЙ РЯД (Платные) ---
-        String ukrStatus = CosmeticManager.hasPurchased(player, "ukraine") ? "§aКуплено! Кликни, чтобы надеть" : "§eКликни для покупки";
-        inv.setItem(20, applyLore(CosmeticManager.getUkraineBanner(), "§7Родной флаг", "", "§7Цена: §6500 Монет", ukrStatus));
+        String ukrPrice = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.status.price").replace("%price%", "500"));
+        String ukrStatus = CosmeticManager.hasPurchased(player, "ukraine") ? bought : buy;
+        String ukrLore = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.banners.ukraine.lore"));
+        inv.setItem(20, applyLore(CosmeticManager.getUkraineBanner(player), ukrLore, "", ukrPrice, ukrStatus));
 
-        String crpStatus = CosmeticManager.hasPurchased(player, "creeper") ? "§aКуплено! Кликни, чтобы надеть" : "§eКликни для покупки";
-        inv.setItem(22, applyLore(CosmeticManager.getCreeperBanner(), "§7Тсссс...", "", "§7Цена: §6750 Монет", crpStatus));
+        String crpPrice = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.status.price").replace("%price%", "750"));
+        String crpStatus = CosmeticManager.hasPurchased(player, "creeper") ? bought : buy;
+        String crpLore = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.banners.creeper.lore"));
+        inv.setItem(22, applyLore(CosmeticManager.getCreeperBanner(player), crpLore, "", crpPrice, crpStatus));
 
-        String crsStatus = CosmeticManager.hasPurchased(player, "crusader") ? "§aКуплено! Кликни, чтобы надеть" : "§eКликни для покупки";
-        inv.setItem(24, applyLore(CosmeticManager.getCrusaderBanner(), "§7Deus Vult!", "", "§7Цена: §61000 Монет", crsStatus)); // Сделал за монеты, чтобы точно не было ошибок
+        String crsPrice = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.status.price").replace("%price%", "1000"));
+        String crsStatus = CosmeticManager.hasPurchased(player, "crusader") ? bought : buy;
+        String crsLore = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.banners.crusader.lore"));
+        inv.setItem(24, applyLore(CosmeticManager.getCrusaderBanner(player), crsLore, "", crsPrice, crsStatus));
 
-        // Кнопка снятия в самом низу
+        // --- Кнопка снятия ---
         ItemStack barrier = new ItemStack(Material.BARRIER);
         ItemMeta bMeta = barrier.getItemMeta();
-        bMeta.setDisplayName("§c❌ Снять косметику");
-        bMeta.setLore(Arrays.asList("§7Очистить слот шлема"));
+        bMeta.setDisplayName(CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.gui.remove")));
+        bMeta.setLore(Arrays.asList(CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.gui.remove_lore"))));
         barrier.setItemMeta(bMeta);
         inv.setItem(31, barrier);
 
         player.openInventory(inv);
     }
 
-    // Умный метод, который добавляет описание к уже готовому флагу
     private static ItemStack applyLore(ItemStack item, String... loreLines) {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {

@@ -1,12 +1,13 @@
 package net.jetluna.lobby.gui;
 
-import net.jetluna.api.parkour.ParkourManager;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import net.jetluna.lobby.LobbyGui;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -14,9 +15,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,68 +29,68 @@ public class SettingsGui implements Listener {
     private static final Set<UUID> doubleJumpDisabled = new HashSet<>();
 
     public static void open(Player player) {
-        String title = "Настройки";
+        String title = color(LanguageManager.getString(player, "lobby.settings_gui.title"));
         Inventory gui = Bukkit.createInventory(player, 36, title);
         Rank rank = RankManager.getRank(player);
 
-        // 1. Видимость
         boolean playersVisible = !player.hasMetadata("visibility_hidden");
+        String visNamePath = playersVisible ? "lobby.settings_gui.visibility.on" : "lobby.settings_gui.visibility.off";
         gui.setItem(10, new ItemBuilder(playersVisible ? Material.LIME_DYE : Material.GRAY_DYE)
-                .setName(playersVisible ? "&aИгроки: Видимы" : "&cИгроки: Скрыты")
-                .setLore("&7Нажмите, чтобы переключить")
+                .setName(color(LanguageManager.getString(player, visNamePath)))
+                .setLore(colorList(player, "lobby.settings_gui.visibility.lore"))
                 .build());
 
-        // 2. Чат
         boolean chatVisible = !chatHidden.contains(player.getUniqueId());
+        String chatNamePath = chatVisible ? "lobby.settings_gui.chat.on" : "lobby.settings_gui.chat.off";
         gui.setItem(12, new ItemBuilder(Material.PAPER)
-                .setName(chatVisible ? "&aЧат: Виден" : "&cЧат: Скрыт")
-                .setLore("&7Нажмите, чтобы переключить")
+                .setName(color(LanguageManager.getString(player, chatNamePath)))
+                .setLore(colorList(player, "lobby.settings_gui.chat.lore"))
                 .setGlow(chatVisible)
                 .build());
 
         boolean inParkour = net.jetluna.api.parkour.ParkourManager.isInParkour(player);
 
-        // 3. Двойной Прыжок
         if (inParkour) {
             gui.setItem(14, new ItemBuilder(Material.BARRIER)
-                    .setName("&cДвойной прыжок")
-                    .setLore("&7Способности отключены", "&cво время паркура!")
+                    .setName(color(LanguageManager.getString(player, "lobby.settings_gui.doublejump.disabled_parkour")))
+                    .setLore(colorList(player, "lobby.settings_gui.doublejump.disabled_parkour_lore"))
                     .build());
         } else if (rank.getWeight() >= 2) {
             boolean djEnabled = !doubleJumpDisabled.contains(player.getUniqueId());
+            String djNamePath = djEnabled ? "lobby.settings_gui.doublejump.on" : "lobby.settings_gui.doublejump.off";
             gui.setItem(14, new ItemBuilder(Material.SLIME_BALL)
-                    .setName(djEnabled ? "&aДвойной прыжок: ВКЛ" : "&cДвойной прыжок: ВЫКЛ")
-                    .setLore("&7Нажмите, чтобы переключить", "&eТребуется: GO")
+                    .setName(color(LanguageManager.getString(player, djNamePath)))
+                    .setLore(colorList(player, "lobby.settings_gui.doublejump.lore"))
                     .setGlow(djEnabled)
                     .build());
         } else {
             gui.setItem(14, new ItemBuilder(Material.BARRIER)
-                    .setName("&cДвойной прыжок")
-                    .setLore("&7Недоступно", "&eКупите привилегию GO")
+                    .setName(color(LanguageManager.getString(player, "lobby.settings_gui.doublejump.unavailable")))
+                    .setLore(colorList(player, "lobby.settings_gui.doublejump.unavailable_lore"))
                     .build());
         }
 
-        // 4. Флай
         if (inParkour) {
             gui.setItem(16, new ItemBuilder(Material.BARRIER)
-                    .setName("&cФлай")
-                    .setLore("&7Способности отключены", "&cво время паркура!")
+                    .setName(color(LanguageManager.getString(player, "lobby.settings_gui.fly.disabled_parkour")))
+                    .setLore(colorList(player, "lobby.settings_gui.fly.disabled_parkour_lore"))
                     .build());
         } else if (rank.getWeight() >= 3) {
             boolean flyEnabled = !flyDisabled.contains(player.getUniqueId());
+            String flyNamePath = flyEnabled ? "lobby.settings_gui.fly.on" : "lobby.settings_gui.fly.off";
             gui.setItem(16, new ItemBuilder(Material.FEATHER)
-                    .setName(flyEnabled ? "&aФлай: ВКЛ" : "&cФлай: ВЫКЛ")
-                    .setLore("&7Нажмите, чтобы переключить", "&bТребуется: PLUS")
+                    .setName(color(LanguageManager.getString(player, flyNamePath)))
+                    .setLore(colorList(player, "lobby.settings_gui.fly.lore"))
                     .setGlow(flyEnabled)
                     .build());
         } else {
             gui.setItem(16, new ItemBuilder(Material.BARRIER)
-                    .setName("&cФлай")
-                    .setLore("&7Недоступно", "&bКупите привилегию PLUS")
+                    .setName(color(LanguageManager.getString(player, "lobby.settings_gui.fly.unavailable")))
+                    .setLore(colorList(player, "lobby.settings_gui.fly.unavailable_lore"))
                     .build());
         }
 
-        gui.setItem(31, new ItemBuilder(Material.ARROW).setName("&cНазад").build());
+        gui.setItem(31, new ItemBuilder(Material.ARROW).setName(color(LanguageManager.getString(player, "lobby.settings_gui.back"))).build());
         player.openInventory(gui);
     }
 
@@ -96,7 +98,9 @@ public class SettingsGui implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
-        if (!event.getView().getTitle().equals("Настройки")) return;
+
+        String expectedTitle = color(LanguageManager.getString(player, "lobby.settings_gui.title"));
+        if (!ChatColor.stripColor(event.getView().getTitle()).equals(ChatColor.stripColor(expectedTitle))) return;
 
         event.setCancelled(true);
         if (event.getCurrentItem() == null) return;
@@ -114,7 +118,7 @@ public class SettingsGui implements Listener {
             open(player);
         } else if (slot == 14) {
             if (net.jetluna.api.parkour.ParkourManager.isInParkour(player)) {
-                ChatUtil.sendMessage(player, "&cВо время паркура способности недоступны!");
+                ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.parkour_disabled")));
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
                 return;
             }
@@ -122,7 +126,7 @@ public class SettingsGui implements Listener {
             open(player);
         } else if (slot == 16) {
             if (net.jetluna.api.parkour.ParkourManager.isInParkour(player)) {
-                ChatUtil.sendMessage(player, "&cВо время паркура способности недоступны!");
+                ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.parkour_disabled")));
                 player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
                 return;
             }
@@ -133,27 +137,25 @@ public class SettingsGui implements Listener {
         }
     }
 
-    // --- МЕТОДЫ ДЛЯ КОМАНД ---
-
     public static void toggleFly(Player player) {
         Rank rank = RankManager.getRank(player);
         if (rank.getWeight() < 3) {
-            ChatUtil.sendMessage(player, "&cВам нужна привилегия PLUS!");
+            ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.fly_req")));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             return;
         }
 
         if (flyDisabled.contains(player.getUniqueId())) {
             flyDisabled.remove(player.getUniqueId());
-            ChatUtil.sendMessage(player, "&aФлай включен!");
+            ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.fly_on")));
 
             if (!doubleJumpDisabled.contains(player.getUniqueId())) {
                 doubleJumpDisabled.add(player.getUniqueId());
-                ChatUtil.sendMessage(player, "&eДвойной прыжок был автоматически выключен.");
+                ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.dj_auto_off")));
             }
         } else {
             flyDisabled.add(player.getUniqueId());
-            ChatUtil.sendMessage(player, "&cФлай выключен!");
+            ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.fly_off")));
         }
         updateFlight(player);
         player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
@@ -162,28 +164,27 @@ public class SettingsGui implements Listener {
     public static void toggleDoubleJump(Player player) {
         Rank rank = RankManager.getRank(player);
         if (rank.getWeight() < 2) {
-            ChatUtil.sendMessage(player, "&cВам нужна привилегия GO!");
+            ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.dj_req")));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             return;
         }
 
         if (doubleJumpDisabled.contains(player.getUniqueId())) {
             doubleJumpDisabled.remove(player.getUniqueId());
-            ChatUtil.sendMessage(player, "&aДвойной прыжок включен!");
+            ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.dj_on")));
 
             if (!flyDisabled.contains(player.getUniqueId())) {
                 flyDisabled.add(player.getUniqueId());
-                ChatUtil.sendMessage(player, "&eФлай был автоматически выключен.");
+                ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.fly_auto_off")));
             }
         } else {
             doubleJumpDisabled.add(player.getUniqueId());
-            ChatUtil.sendMessage(player, "&cДвойной прыжок выключен!");
+            ChatUtil.sendMessage(player, color(LanguageManager.getString(player, "lobby.settings_gui.messages.dj_off")));
         }
         updateFlight(player);
         player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
     }
 
-    // --- ГЕТТЕРЫ И ЛОГИКА ---
     public static boolean isChatHidden(Player p) { return chatHidden.contains(p.getUniqueId()); }
     public static boolean isFlyEnabled(Player p) { return !flyDisabled.contains(p.getUniqueId()); }
     public static boolean isDoubleJumpEnabled(Player p) { return !doubleJumpDisabled.contains(p.getUniqueId()); }
@@ -203,5 +204,16 @@ public class SettingsGui implements Listener {
             p.setAllowFlight(false);
             p.setFlying(false);
         }
+    }
+
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
+    }
+
+    private static List<String> colorList(Player p, String key) {
+        List<String> list = LanguageManager.getList(p, key);
+        if (list == null) return new ArrayList<>();
+        list.replaceAll(s -> ChatColor.translateAlternateColorCodes('&', s));
+        return list;
     }
 }

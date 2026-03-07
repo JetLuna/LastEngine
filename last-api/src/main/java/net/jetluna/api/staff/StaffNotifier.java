@@ -3,10 +3,12 @@ package net.jetluna.api.staff;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.jetluna.api.LastApi;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.io.InputStreamReader;
@@ -21,13 +23,11 @@ public class StaffNotifier {
     private static final int STAFF_WEIGHT = 6;
     private static final int ADMIN_WEIGHT = 9;
 
-    // АНТИ-ДУБЛИКАТ: Храним тех, кто только что зашел
     private static final Set<UUID> recentJoins = new HashSet<>();
 
     public static void notifyJoin(Player player, String suffix) {
         if (recentJoins.contains(player.getUniqueId())) return;
 
-        // Блокируем повторный вызов на 2 секунды
         recentJoins.add(player.getUniqueId());
         Bukkit.getScheduler().runTaskLaterAsynchronously(LastApi.getInstance(),
                 () -> recentJoins.remove(player.getUniqueId()), 40L);
@@ -39,21 +39,27 @@ public class StaffNotifier {
 
         Bukkit.getScheduler().runTaskAsynchronously(LastApi.getInstance(), () -> {
             String location = getGeo(ip);
+            String prefix = rank.getPrefix();
 
-            String prefix = rank.getPrefix()
-                    .replace("<dark_red>", "&4").replace("<bold>", "&l")
-                    .replaceAll("<[^>]+>", "");
+            broadcastLocal(prefix, player.getName(), suffix, location, ip);
 
-            String baseMessage = (prefix + player.getName() + suffix + " &eзашел на сервер.").replace("&", "§");
-            String adminPart = (" &7[" + location + "] &8(" + ip + ")").replace("&", "§");
+            String defaultBase = color(LanguageManager.getString(null, "staff.join_message"))
+                    .replace("%prefix%", prefix)
+                    .replace("%player%", player.getName())
+                    .replace("%suffix%", suffix);
 
-            broadcastLocal(baseMessage, adminPart);
-            sendCrossServer(baseMessage, adminPart);
+            String defaultAdmin = color(LanguageManager.getString(null, "staff.admin_info"))
+                    .replace("%location%", location)
+                    .replace("%ip%", ip);
+
+            sendCrossServer(defaultBase, defaultAdmin);
         });
     }
 
     private static String getGeo(String ip) {
-        if (ip.equals("127.0.0.1") || ip.startsWith("192.168.")) return "Локальная сеть";
+        if (ip.equals("127.0.0.1") || ip.startsWith("192.168.")) {
+            return color(LanguageManager.getString(null, "staff.local_network"));
+        }
         try {
             URL url = new URL("http://ip-api.com/json/" + ip + "?fields=status,country,city");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -64,17 +70,40 @@ public class StaffNotifier {
                 return json.get("city").getAsString() + "/" + json.get("country").getAsString();
             }
         } catch (Exception ignored) {}
-        return "Неизвестно";
+
+        return color(LanguageManager.getString(null, "staff.unknown_location"));
+    }
+
+    public static void broadcastLocal(String prefix, String playerName, String suffix, String location, String ip) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            Rank rank = RankManager.getRank(p);
+            if (rank.getWeight() >= STAFF_WEIGHT) {
+                String baseMessage = color(LanguageManager.getString(p, "staff.join_message"))
+                        .replace("%prefix%", prefix)
+                        .replace("%player%", playerName)
+                        .replace("%suffix%", suffix);
+
+                if (rank.getWeight() >= ADMIN_WEIGHT) {
+                    String adminPart = color(LanguageManager.getString(p, "staff.admin_info"))
+                            .replace("%location%", location)
+                            .replace("%ip%", ip);
+                    ChatUtil.sendMessage(p, baseMessage + adminPart);
+                } else {
+                    ChatUtil.sendMessage(p, baseMessage);
+                }
+            }
+        }
     }
 
     public static void broadcastLocal(String baseMessage, String adminPart) {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Rank rank = RankManager.getRank(p);
-            if (rank.getWeight() >= ADMIN_WEIGHT) {
-                ChatUtil.sendMessage(p, baseMessage + adminPart);
-            }
-            else if (rank.getWeight() >= STAFF_WEIGHT) {
-                ChatUtil.sendMessage(p, baseMessage);
+            if (rank.getWeight() >= STAFF_WEIGHT) {
+                if (rank.getWeight() >= ADMIN_WEIGHT) {
+                    ChatUtil.sendMessage(p, baseMessage + adminPart);
+                } else {
+                    ChatUtil.sendMessage(p, baseMessage);
+                }
             }
         }
     }
@@ -86,10 +115,12 @@ public class StaffNotifier {
             out.writeUTF("Forward");
             out.writeUTF("ALL");
             out.writeUTF("StaffAlert");
+
             java.io.ByteArrayOutputStream msgBytes = new java.io.ByteArrayOutputStream();
             java.io.DataOutputStream msgOut = new java.io.DataOutputStream(msgBytes);
             msgOut.writeUTF(baseMessage);
             msgOut.writeUTF(adminPart);
+
             out.writeShort(msgBytes.toByteArray().length);
             out.write(msgBytes.toByteArray());
 
@@ -100,5 +131,9 @@ public class StaffNotifier {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static String color(String text) {
+        return text == null ? "" : ChatColor.translateAlternateColorCodes('&', text);
     }
 }

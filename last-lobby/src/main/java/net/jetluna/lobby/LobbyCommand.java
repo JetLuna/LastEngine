@@ -1,5 +1,6 @@
 package net.jetluna.lobby;
 
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.util.ChatUtil;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -30,7 +31,9 @@ public class LobbyCommand implements CommandExecutor {
             plugin.getConfig().set("spawn.yaw", player.getLocation().getYaw());
             plugin.getConfig().set("spawn.pitch", player.getLocation().getPitch());
             plugin.saveConfig();
-            player.sendMessage(ChatUtil.parse("<green>Спавн установлен!"));
+
+            // Используем сообщение, которое уже было в ru.yml (раздел messages.spawn_set)
+            LanguageManager.sendMessage(player, "messages.spawn_set");
             return true;
         }
 
@@ -44,20 +47,21 @@ public class LobbyCommand implements CommandExecutor {
             if (args.length < 1) return true;
             plugin.getConfig().set("locations.npc." + args[0].toLowerCase(), player.getLocation());
             plugin.saveConfig();
-            player.sendMessage(ChatUtil.parse("<green>NPC " + args[0] + " установлен!"));
+
+            String msg = LanguageManager.getString(player, "lobby.commands.npc_set").replace("%name%", args[0]);
+            ChatUtil.sendMessage(player, msg);
             return true;
         }
 
         return false;
     }
 
-    // !!! ВОТ ЭТОТ МЕТОД НУЖЕН ДЛЯ LobbyListener !!!
     public void teleportToLobby(Player player) {
         Location loc = plugin.getLobbySpawn();
         if (loc != null) {
             player.teleport(loc);
         } else {
-            player.sendMessage(ChatUtil.parse("<red>Спавн не установлен!"));
+            LanguageManager.sendMessage(player, "lobby.commands.spawn_not_set");
         }
     }
 }

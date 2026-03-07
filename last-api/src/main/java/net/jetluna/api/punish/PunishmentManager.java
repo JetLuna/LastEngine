@@ -1,6 +1,7 @@
 package net.jetluna.api.punish;
 
 import net.jetluna.api.LastApi;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
@@ -56,7 +57,7 @@ public class PunishmentManager {
         return true;
     }
 
-    // --- СООБЩЕНИЯ (НОВЫЙ ФОРМАТ) ---
+    // --- СООБЩЕНИЯ (НОВЫЙ ФОРМАТ ИЗ КОНФИГА) ---
 
     public static String getMuteMessage(String playerName) {
         String path = "mutes." + playerName.toLowerCase();
@@ -64,17 +65,16 @@ public class PunishmentManager {
         String reason = config.getString(path + ".reason");
         String admin = config.getString(path + ".admin");
 
-        // Считаем, сколько осталось
         long remaining = expire - System.currentTimeMillis();
-        String timeStr = (remaining > 0) ? TimeUtil.formatDuration(remaining) : "Истекает сейчас";
 
-        return "\n<gray>=================================\n" +
-                "<gradient:aqua:blue>LastEngine <dark_gray>- <red>Доступ к чату заблокирован!\n" +
-                "<gray>Наказание истекает через: <yellow>" + timeStr + "\n" +
-                "<gray>Причина: <white>" + reason + "\n" +
-                "<gray>Наказание выдал: " + admin + "\n" +
-                "<gray>Обжаловать: <green>forum.lastengine.net\n" +
-                "<gray>=================================";
+        Player player = Bukkit.getPlayerExact(playerName);
+        String timeNow = LanguageManager.getString(player, "punish.screens.time_now");
+        String timeStr = (remaining > 0) ? TimeUtil.formatDuration(remaining) : timeNow;
+
+        return LanguageManager.getString(player, "punish.screens.mute")
+                .replace("%time%", timeStr)
+                .replace("%reason%", reason)
+                .replace("%admin%", admin);
     }
 
     public static String getBanMessage(String playerName) {
@@ -84,27 +84,26 @@ public class PunishmentManager {
         String admin = config.getString(path + ".admin");
 
         long remaining = expire - System.currentTimeMillis();
-        String timeStr = (remaining > 0) ? TimeUtil.formatDuration(remaining) : "Истекает сейчас";
 
-        return "\n<red>Доступ к серверу заблокирован!\n" +
-                "<gray>Наказание истекает через: <yellow>" + timeStr + "\n" +
-                "<gray>Причина: <white>" + reason + "\n" +
-                "<gray>Наказание выдал: " + admin + "\n" +
-                " \n" +
-                "<gray>Обжаловать: <green>forum.lastengine.net";
+        Player player = Bukkit.getPlayerExact(playerName);
+        String timeNow = LanguageManager.getString(player, "punish.screens.time_now");
+        String timeStr = (remaining > 0) ? TimeUtil.formatDuration(remaining) : timeNow;
+
+        return LanguageManager.getString(player, "punish.screens.ban")
+                .replace("%time%", timeStr)
+                .replace("%reason%", reason)
+                .replace("%admin%", admin);
     }
 
-    public static String getKickMessage(String adminDisplay) {
-        return "\n<red>Вы были кикнуты с сервера!\n" +
-                "<gray>Наказание выдал: " + adminDisplay + "\n" +
-                " \n" +
-                "<gray>Обжаловать: <green>forum.lastengine.net";
+    public static String getKickMessage(Player target, String adminDisplay) {
+        return LanguageManager.getString(target, "punish.screens.kick")
+                .replace("%admin%", adminDisplay);
     }
 
     // --- ДЕЙСТВИЯ ---
 
     public static void kick(Player target, String adminDisplay, String reason) {
-        target.kick(ChatUtil.parse(getKickMessage(adminDisplay)));
+        target.kick(ChatUtil.parse(getKickMessage(target, adminDisplay)));
         broadcastStaff(adminDisplay, "KICK", target.getName(), reason, "Сейчас");
     }
 
@@ -114,7 +113,7 @@ public class PunishmentManager {
         config.set(path + ".reason", reason);
         config.set(path + ".admin", adminDisplay);
 
-        String durationStr = TimeUtil.formatDuration(time); // Сохраняем длительность для истории
+        String durationStr = TimeUtil.formatDuration(time);
         addToHistory(target, "MUTE", adminDisplay, reason, durationStr);
         save();
 
@@ -150,10 +149,15 @@ public class PunishmentManager {
     // --- ИСТОРИЯ И ПРОЧЕЕ ---
 
     private static void addToHistory(String target, String type, String admin, String reason, String duration) {
-        // Записываем просто текущую дату для истории (когда выдали)
-        // Для этого используем стандартную Java дату, чтобы не тянуть TimeUtil.formatDate
         String date = new java.text.SimpleDateFormat("dd.MM HH:mm").format(new java.util.Date());
-        String entry = "<gray>[" + date + "] <gold>" + type + " <gray>(" + duration + ") by " + admin + ": <white>" + reason;
+
+        // Для истории используем дефолтный язык (null), так как это хранится глобально в БД
+        String entry = LanguageManager.getString(null, "punish.formats.history_entry")
+                .replace("%date%", date)
+                .replace("%type%", type)
+                .replace("%duration%", duration)
+                .replace("%admin%", admin)
+                .replace("%reason%", reason);
 
         List<String> history = config.getStringList("history." + target.toLowerCase() + "." + type);
         history.add(entry);
@@ -177,18 +181,27 @@ public class PunishmentManager {
     }
 
     private static void broadcastStaff(String admin, String type, String target, String reason, String duration) {
-        String msg = "<gray>[<red>Staff<gray>] " + admin +
-                " <gray>issued <red><bold>" + type +
-                " <gray>to <red>" + target +
-                " <gray>for <white>" + reason +
-                " <gray>(Duration: <yellow>" + duration + "<gray>)";
-
         for (Player p : Bukkit.getOnlinePlayers()) {
             Rank rank = RankManager.getRank(p);
             if (p.isOp() || rank.getWeight() >= 7) {
+                // Переводим рассылку для каждого модератора индивидуально!
+                String msg = LanguageManager.getString(p, "punish.formats.staff_broadcast")
+                        .replace("%admin%", admin)
+                        .replace("%type%", type)
+                        .replace("%target%", target)
+                        .replace("%reason%", reason)
+                        .replace("%duration%", duration);
                 ChatUtil.sendMessage(p, msg);
             }
         }
-        Bukkit.getConsoleSender().sendMessage(ChatUtil.parseLegacy(msg));
+
+        // Вывод в консоль на дефолтном языке
+        String consoleMsg = LanguageManager.getString(null, "punish.formats.staff_broadcast")
+                .replace("%admin%", admin)
+                .replace("%type%", type)
+                .replace("%target%", target)
+                .replace("%reason%", reason)
+                .replace("%duration%", duration);
+        Bukkit.getConsoleSender().sendMessage(ChatUtil.parseLegacy(consoleMsg));
     }
 }

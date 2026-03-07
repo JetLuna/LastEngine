@@ -1,11 +1,13 @@
 package net.jetluna.api.gadget;
 
 import net.jetluna.api.LastApi;
+import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -15,14 +17,15 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GadgetsGui implements Listener {
 
-    private static final String TITLE = "Ваши гаджеты";
-
     public static void open(Player player) {
-        Inventory gui = Bukkit.createInventory(player, 54, TITLE);
+        String title = toLegacy(LanguageManager.getString(player, "gadgets.gui.title"));
+        Inventory gui = Bukkit.createInventory(player, 54, title);
+
         PlayerStats stats = StatsManager.getStats(player);
         if (stats == null) return;
 
@@ -40,29 +43,43 @@ public class GadgetsGui implements Listener {
             boolean isOwned = stats.getOwnedGadgets() != null && stats.getOwnedGadgets().contains(type.name());
 
             ItemBuilder builder = new ItemBuilder(type.getIcon());
+            String gadgetName = toLegacy(LanguageManager.getString(player, "gadgets.list." + type.name().toLowerCase()));
 
             if (isActive) {
-                builder.setName("&a★ &c" + type.getDisplayName() + " &a★").setLore(Arrays.asList("", "&aЭкипировано!", "&7Гаджет находится в вашем инвентаре.")).setGlow(true);
+                builder.setName(toLegacy(LanguageManager.getString(player, "gadgets.status.active_name")).replace("%gadget%", gadgetName));
+                builder.setLore(getLegacyList(player, "gadgets.status.active_lore")).setGlow(true);
             } else if (isOwned) {
-                builder.setName("&c" + type.getDisplayName()).setLore(Arrays.asList("", "&7Статус: &aРазблокировано", "", "&eНажмите, чтобы взять!"));
+                builder.setName(toLegacy(LanguageManager.getString(player, "gadgets.status.owned_name")).replace("%gadget%", gadgetName));
+                builder.setLore(getLegacyList(player, "gadgets.status.owned_lore"));
             } else {
-                builder.setName("&c" + type.getDisplayName()).setLore(Arrays.asList("", "&7Цена: &6" + type.getPrice() + " монет", "", "&cУ вас не куплено!", "&eНажмите, чтобы купить."));
+                builder.setName(toLegacy(LanguageManager.getString(player, "gadgets.status.buy_name")).replace("%gadget%", gadgetName));
+                List<String> lore = getLegacyList(player, "gadgets.status.buy_lore");
+                lore.replaceAll(s -> s.replace("%price%", String.valueOf(type.getPrice())));
+                builder.setLore(lore);
             }
             gui.setItem(slots[i], builder.build());
         }
 
-        gui.setItem(48, new ItemBuilder(Material.BARRIER).setName("&cСнять гаджет").setLore(Arrays.asList("&7Убрать гаджет из инвентаря.")).build());
-        gui.setItem(49, new ItemBuilder(Material.ARROW).setName("&cЗакрыть").setLore(Arrays.asList("&7Вернуться назад.")).build());
+        String removeName = toLegacy(LanguageManager.getString(player, "gadgets.gui.remove"));
+        List<String> removeLore = getLegacyList(player, "gadgets.gui.remove_lore");
+        gui.setItem(48, new ItemBuilder(Material.BARRIER).setName(removeName).setLore(removeLore).build());
+
+        String closeName = toLegacy(LanguageManager.getString(player, "gadgets.gui.close"));
+        List<String> closeLore = getLegacyList(player, "gadgets.gui.close_lore");
+        gui.setItem(49, new ItemBuilder(Material.ARROW).setName(closeName).setLore(closeLore).build());
 
         player.openInventory(gui);
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!ChatUtil.strip(event.getView().getTitle()).equals(TITLE)) return;
+        Player player = (Player) event.getWhoClicked();
+
+        String expectedTitle = toLegacy(LanguageManager.getString(player, "gadgets.gui.title"));
+        if (!ChatColor.stripColor(event.getView().getTitle()).equals(ChatColor.stripColor(expectedTitle))) return;
+
         event.setCancelled(true);
 
-        Player player = (Player) event.getWhoClicked();
         ItemStack item = event.getCurrentItem();
         if (item == null || item.getType() == Material.AIR || item.getType() == Material.GRAY_STAINED_GLASS_PANE) return;
 
@@ -80,20 +97,26 @@ public class GadgetsGui implements Listener {
         if (slot == 48) {
             stats.setActiveGadget("");
             GadgetManager.remove(player);
-            ChatUtil.sendMessage(player, "&cВы убрали гаджет в рюкзак!");
+            String msg = toLegacy(LanguageManager.getString(player, "gadgets.messages.removed"));
+            ChatUtil.sendMessage(player, msg);
             player.playSound(player.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1f, 1f);
             Bukkit.getScheduler().runTask(LastApi.getInstance(), () -> open(player));
             return;
         }
 
         for (GadgetType type : GadgetType.values()) {
-            if (item.getType() == type.getIcon() && ChatUtil.strip(item.getItemMeta().getDisplayName()).contains(type.getDisplayName())) {
+            // Для проверки клика теперь сверяем локализованное имя
+            String gadgetName = toLegacy(LanguageManager.getString(player, "gadgets.list." + type.name().toLowerCase()));
+
+            if (item.getType() == type.getIcon() && ChatColor.stripColor(item.getItemMeta().getDisplayName()).contains(ChatColor.stripColor(gadgetName))) {
                 boolean isOwned = stats.getOwnedGadgets() != null && stats.getOwnedGadgets().contains(type.name());
 
                 if (isOwned) {
                     stats.setActiveGadget(type.name());
                     GadgetManager.equip(player, type);
-                    ChatUtil.sendMessage(player, "&aВы взяли в руки: " + type.getDisplayName());
+
+                    String msg = toLegacy(LanguageManager.getString(player, "gadgets.messages.equipped")).replace("%gadget%", gadgetName);
+                    ChatUtil.sendMessage(player, msg);
                     player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_GENERIC, 1f, 1.5f);
                 } else {
                     if (stats.getCoins() >= type.getPrice()) {
@@ -101,10 +124,13 @@ public class GadgetsGui implements Listener {
                         stats.getOwnedGadgets().add(type.name());
                         stats.setActiveGadget(type.name());
                         GadgetManager.equip(player, type);
-                        ChatUtil.sendMessage(player, "&aВы успешно купили гаджет " + type.getDisplayName() + "!");
+
+                        String msg = toLegacy(LanguageManager.getString(player, "gadgets.messages.purchased")).replace("%gadget%", gadgetName);
+                        ChatUtil.sendMessage(player, msg);
                         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
                     } else {
-                        ChatUtil.sendMessage(player, "&cНедостаточно монет для покупки!");
+                        String msg = toLegacy(LanguageManager.getString(player, "gadgets.messages.not_enough_coins"));
+                        ChatUtil.sendMessage(player, msg);
                         player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
                     }
                 }
@@ -112,5 +138,23 @@ public class GadgetsGui implements Listener {
                 break;
             }
         }
+    }
+
+    // --- ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ---
+    private static List<String> getLegacyList(Player player, String key) {
+        List<String> list = LanguageManager.getList(player, key);
+        List<String> legacyList = new ArrayList<>();
+        if (list != null) {
+            for (String s : list) {
+                legacyList.add(toLegacy(s));
+            }
+        }
+        return legacyList;
+    }
+
+    private static String toLegacy(String text) {
+        if (text == null) return "";
+        String legacy = text.replace("<dark_red>", "&4").replace("</dark_red>", "").replace("<red>", "&c").replace("</red>", "").replace("<gold>", "&6").replace("</gold>", "").replace("<yellow>", "&e").replace("</yellow>", "").replace("<dark_green>", "&2").replace("</dark_green>", "").replace("<green>", "&a").replace("</green>", "").replace("<aqua>", "&b").replace("</aqua>", "").replace("<dark_aqua>", "&3").replace("</dark_aqua>", "").replace("<dark_blue>", "&1").replace("</dark_blue>", "").replace("<blue>", "&9").replace("</blue>", "").replace("<light_purple>", "&d").replace("</light_purple>", "").replace("<dark_purple>", "&5").replace("</dark_purple>", "").replace("<white>", "&f").replace("</white>", "").replace("<gray>", "&7").replace("</gray>", "").replace("<dark_gray>", "&8").replace("</dark_gray>", "").replace("<black>", "&0").replace("</black>", "").replace("<bold>", "&l").replace("</bold>", "").replace("<italic>", "&o").replace("</italic>", "").replace("<strikethrough>", "&m").replace("</strikethrough>", "").replace("<underlined>", "&n").replace("</underlined>", "").replace("<obfuscated>", "&k").replace("</obfuscated>", "").replace("<reset>", "&r").replace("</reset>", "").replaceAll("<[^>]+>", "");
+        return ChatColor.translateAlternateColorCodes('&', legacy);
     }
 }
