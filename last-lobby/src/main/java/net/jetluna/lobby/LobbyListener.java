@@ -252,4 +252,35 @@ public class LobbyListener implements Listener {
         list.replaceAll(s -> ChatColor.translateAlternateColorCodes('&', s));
         return list;
     }
+
+    @EventHandler
+    public void onLanguageChange(net.jetluna.api.lang.PlayerLanguageChangeEvent event) {
+        Player player = event.getPlayer();
+
+        // Запоминаем, были ли скрыты игроки (проверяем наличие серого красителя ДО очистки)
+        boolean wasHidden = player.getInventory().contains(org.bukkit.Material.GRAY_DYE);
+
+        // Очищаем старые предметы (на старом языке)
+        player.getInventory().clear();
+
+        // Выдаем новые предметы (они уже подтянут новый язык из LanguageManager)
+        LobbyItems.giveItems(player);
+
+        // Если игроки были скрыты, заменяем выданный зеленый краситель на серый с правильным переводом
+        if (wasHidden) {
+            ItemStack disabled = new net.jetluna.api.util.ItemBuilder(org.bukkit.Material.GRAY_DYE)
+                    .setName(color(LanguageManager.getString(player, "lobby.items.visibility.disabled.name")))
+                    .setLore(colorList(player, "lobby.items.visibility.disabled.lore"))
+                    .build();
+
+            // Находим слот с зеленым красителем и меняем его
+            for (int i = 0; i < player.getInventory().getSize(); i++) {
+                org.bukkit.inventory.ItemStack item = player.getInventory().getItem(i);
+                if (item != null && item.getType() == org.bukkit.Material.LIME_DYE) {
+                    player.getInventory().setItem(i, disabled);
+                    break;
+                }
+            }
+        }
+    }
 }

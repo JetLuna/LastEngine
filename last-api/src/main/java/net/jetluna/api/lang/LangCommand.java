@@ -1,5 +1,6 @@
 package net.jetluna.api.lang;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,9 +21,10 @@ public class LangCommand implements CommandExecutor {
         String lang = args[0].toLowerCase();
         if (lang.equals("ru") || lang.equals("en") || lang.equals("ua")) {
             LanguageManager.setLang(player, lang);
-
-            // Отправляем сообщение об успешной смене языка из секции general!
             LanguageManager.sendMessage(player, "general.lang_changed");
+
+            // !!! ВЫЗЫВАЕМ НАШ ИВЕНТ !!!
+            Bukkit.getPluginManager().callEvent(new PlayerLanguageChangeEvent(player, lang));
         } else {
             LanguageManager.sendMessage(player, "lang.unknown");
         }
