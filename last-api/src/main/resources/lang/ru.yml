@@ -9,6 +9,19 @@ general:
   player_not_found: "&cОшибка &8» &cИгрок не найден."
 
 lobby:
+  donate_gui:
+    title: "&e&lДонат меню"
+    prefix_color:
+      name: "&d&lСмена цвета префикса"
+      lore:
+        - "&7"
+        - "&7Настройте цвет своего префикса,"
+        - "&7чтобы выделяться в чате и табе!"
+        - "&7"
+        - "&8Доступно для: &5MAX&8, &cADMIN&8, &4DEV"
+        - "&7"
+        - "&eНажмите, чтобы открыть!"
+    back: "&cНазад"
   board:
     title: "&6&lLAST ENGINE"
     info_title: "&2Информация:"
@@ -232,10 +245,10 @@ lobby:
   npc:
     bedwars:
       name: "&c&lBedWars"
-      holo: "&7Онлайн: &a%online%"
+      holo: "&7Скоро..."
     vanilla:
       name: "&a&lVanilla"
-      holo: "&7Онлайн: &a%online%"
+      holo: "&7Скоро..."
     duels:
       name: "&e&lDuels"
       holo: "&7Скоро..."
@@ -265,6 +278,13 @@ lobby:
       received_emeralds: "&a+ %amount% изумрудов"
 
   profile_gui:
+    donate:
+      name: "&e&lДонат меню"
+      lore:
+        - "&7Различные возможности,"
+        - "&7кастомизация и покупки."
+        - ""
+        - "&eНажмите, чтобы открыть!"
     language:
       name: "&bЯзык"
       lore:
@@ -362,7 +382,6 @@ lobby:
     physics_off_desc: "&7(Цветы висят в воздухе, песок не падает)"
 
   pig:
-    name: "&d&lСвин-Бомбардировщик"
     boom: "&d&lСвин-Бомбардировщик &8» &c&lБАБАХ!!!"
 
 auth:
@@ -808,3 +827,26 @@ stream:
       youtube: "&cYouTube"
       other: "&fТрансляция"
     chat_link: "&8[&bСтримы&8] &fСсылка на стрим &b%streamer%&f: &e&n%url%"
+color_gui:
+  title: "&8Выбор цвета префикса"
+  no_permission: "&cУ вас нет прав для изменения цвета префикса!"
+  reset_name: "&c&lСбросить цвет"
+  reset_lore:
+    - "&7Нажмите, чтобы вернуть"
+    - "&7стандартный цвет вашего ранга."
+  success_reset: "&aВы успешно сбросили цвет префикса до стандартного!"
+  success_change: "&aВы успешно изменили цвет префикса на %color%&a!"
+  example_text: "&7Пример в чате:"
+  preview_format: "%color%&l%prefix% %color%%player% &8» &fПривет!"
+  status_selected: "&a&lВЫБРАНО"
+  status_unselected: "&eНажмите, чтобы выбрать!"
+  colors:
+    dark_red: "Красный"
+    gold: "Оранжевый"
+    yellow: "Жёлтый"
+    green: "Зеленый"
+    blue: "Синий"
+    aqua: "Голубой"
+    dark_purple: "Фиолетовый"
+    light_purple: "Розовый"
+    white: "Белый"

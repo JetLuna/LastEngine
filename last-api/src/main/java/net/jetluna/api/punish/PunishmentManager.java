@@ -59,11 +59,15 @@ public class PunishmentManager {
 
     // --- СООБЩЕНИЯ (НОВЫЙ ФОРМАТ ИЗ КОНФИГА) ---
 
+// --- СООБЩЕНИЯ (НОВЫЙ ФОРМАТ ИЗ КОНФИГА) ---
+
     public static String getMuteMessage(String playerName) {
         String path = "mutes." + playerName.toLowerCase();
         long expire = config.getLong(path + ".expire");
-        String reason = config.getString(path + ".reason");
-        String admin = config.getString(path + ".admin");
+
+        // Защита от NullPointerException
+        String reason = config.getString(path + ".reason", "Нарушение");
+        String admin = config.getString(path + ".admin", "Консоль");
 
         long remaining = expire - System.currentTimeMillis();
 
@@ -80,8 +84,10 @@ public class PunishmentManager {
     public static String getBanMessage(String playerName) {
         String path = "bans." + playerName.toLowerCase();
         long expire = config.getLong(path + ".expire");
-        String reason = config.getString(path + ".reason");
-        String admin = config.getString(path + ".admin");
+
+        // Защита от NullPointerException
+        String reason = config.getString(path + ".reason", "Нарушение");
+        String admin = config.getString(path + ".admin", "Консоль");
 
         long remaining = expire - System.currentTimeMillis();
 

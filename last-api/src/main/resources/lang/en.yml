@@ -9,6 +9,19 @@ general:
   player_not_found: "&cError &8» &cPlayer not found."
 
 lobby:
+  donate_gui:
+    title: "&e&lDonate menu"
+    prefix_color:
+      name: "&d&lChange prefix color"
+      lore:
+        - "&7"
+        - "&7Set the color of your prefix"
+        - "&7to stand out in chat and tab!"
+        - "&7"
+        - "&8Available for: &5MAX&8, &cADMIN&8, &4DEV"
+        - "&7"
+        - "&eClick to open!"
+    back: "&cBack"
   board:
     title: "&6&lLAST ENGINE"
     info_title: "&2Information:"
@@ -232,10 +245,10 @@ lobby:
   npc:
     bedwars:
       name: "&c&lBedWars"
-      holo: "&7Online: &a%online%"
+      holo: "&7Coming soon..."
     vanilla:
       name: "&a&lVanilla"
-      holo: "&7Online: &a%online%"
+      holo: "&7Coming soon..."
     duels:
       name: "&e&lDuels"
       holo: "&7Coming soon..."
@@ -265,6 +278,13 @@ lobby:
       received_emeralds: "&a+ %amount% emeralds"
 
   profile_gui:
+    donate:
+      name: "&e&lDonate Menu"
+      lore:
+        - "&7Various features,"
+        - "&7customization and purchases."
+        - ""
+        - "&eClick to open!"
     language:
       name: "&bLanguage"
       lore:
@@ -362,7 +382,6 @@ lobby:
     physics_off_desc: "&7(Flowers float in the air, sand doesn't fall)"
 
   pig:
-    name: "&d&lBomber Pig"
     boom: "&d&lBomber Pig &8» &c&lBOOM!!!"
 
 auth:
@@ -808,3 +827,26 @@ stream:
       youtube: "&cYouTube"
       other: "&fStream"
     chat_link: "&8[&bStreams&8] &fStream link for &b%streamer%&f: &e&n%url%"
+color_gui:
+  title: "&8Prefix Color Selection"
+  no_permission: "&cYou do not have permission to change the prefix color!"
+  reset_name: "&c&lReset Color"
+  reset_lore:
+    - "&7Click to restore"
+    - "&7the default color of your rank."
+  success_reset: "&aYou have successfully reset the prefix color to default!"
+  success_change: "&aYou have successfully changed the prefix color to %color%&a!"
+  example_text: "&7Example in chat:"
+  preview_format: "%color%&l%prefix% %color%%player% &8» &fHello!"
+  status_selected: "&a&lSELECTED"
+  status_unselected: "&eClick to select!"
+  colors:
+    dark_red: "Red"
+    gold: "Orange"
+    yellow: "Yellow"
+    green: "Green"
+    blue: "Blue"
+    aqua: "Light Blue"
+    dark_purple: "Purple"
+    light_purple: "Pink"
+    white: "White"

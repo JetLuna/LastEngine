@@ -6,6 +6,7 @@ import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
+import net.jetluna.api.util.NameFormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -33,8 +34,9 @@ public class LobbyBoard {
         String progressBar = getProgressBar(exp, maxExp, 10, "-", "&a", "&8");
 
         Rank rank = RankManager.getRank(player);
-        String rankName = (rank.getWeight() == 1) ? "&7Player" :
-                rank.getPrefix().replace("<dark_red>", "&4").replace("<bold>", "&l").replaceAll("<[^>]+>", "");
+
+        // Берем готовый красивый ранг с учетом кастомного цвета!
+        String rankName = net.jetluna.api.util.NameFormatUtil.getFormattedRank(player, rank);
 
         // --- СБОРКА СКОРБОРДА ---
         createScore(obj, " ", 15);
@@ -60,6 +62,34 @@ public class LobbyBoard {
 
         String footer = color(LanguageManager.getString(player, "lobby.board.footer"));
         createScore(obj, footer, 1);
+
+        // Вшиваем префиксы над головой и сортировку в ТАБ прямо в этот скорборд
+        for (Player target : Bukkit.getOnlinePlayers()) {
+            Rank targetRank = RankManager.getRank(target);
+
+            // Генерируем имя команды для сортировки (вес ранга + ник)
+            String rawTeamName = String.format("%04d", 1000 - targetRank.getWeight()) + target.getName();
+            String teamName = rawTeamName.substring(0, Math.min(rawTeamName.length(), 16));
+
+            Team team = board.getTeam(teamName);
+            if (team == null) {
+                team = board.registerNewTeam(teamName);
+            }
+
+            // Ставим префикс, используя наш метод из API
+            team.setPrefix(net.jetluna.api.util.NameFormatUtil.getNameTagPrefix(target, targetRank));
+
+            org.bukkit.ChatColor teamColor = NameFormatUtil.getNameTagColor(target, targetRank);
+            if (teamColor != null) {
+                try {
+                    team.setColor(teamColor);
+                } catch (NoSuchMethodError ignored) {}
+            }
+
+            if (!team.hasEntry(target.getName())) {
+                team.addEntry(target.getName());
+            }
+        }
 
         player.setScoreboard(board);
     }

@@ -4,6 +4,7 @@ import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
+import net.jetluna.api.util.NameFormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -56,14 +57,21 @@ public class ReportCommand implements CommandExecutor {
         }
 
         ReportManager.addReport(player.getName(), targetName, reason);
-        String successMsg = LanguageManager.getString(player, "report.commands.success").replace("%player%", targetName);
+
+        // --- БЕРЕМ КРАСИВЫЕ НИКИ ---
+        String formattedSender = NameFormatUtil.getFormattedName(player, rank);
+        Player targetPlayer = Bukkit.getPlayerExact(targetName);
+        // Если нарушитель онлайн - берем красивый ник, если нет - оставляем обычный
+        String formattedTarget = targetPlayer != null ? NameFormatUtil.getFormattedName(targetPlayer, RankManager.getRank(targetPlayer)) : targetName;
+
+        String successMsg = LanguageManager.getString(player, "report.commands.success").replace("%player%", formattedTarget);
         ChatUtil.sendMessage(player, successMsg);
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (RankManager.getRank(p).getWeight() >= 7) {
                 String alert1 = LanguageManager.getString(p, "report.commands.staff_alert_1")
-                        .replace("%sender%", player.getName())
-                        .replace("%target%", targetName);
+                        .replace("%sender%", formattedSender)
+                        .replace("%target%", formattedTarget);
                 String alert2 = LanguageManager.getString(p, "report.commands.staff_alert_2")
                         .replace("%reason%", reason);
 

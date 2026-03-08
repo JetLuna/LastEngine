@@ -5,6 +5,7 @@ import net.jetluna.api.pet.PetsGui;
 import net.jetluna.api.chat.MsgCommand;
 import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.punish.PunishCommand;
+import net.jetluna.api.punish.PunishmentListener;
 import net.jetluna.api.punish.PunishmentManager;
 import net.jetluna.api.rank.RankCommand;
 import net.jetluna.api.stats.StatsManager;
@@ -25,6 +26,7 @@ public class LastApi extends JavaPlugin {
         // !!! ВОТ ЭТА СТРОКА САМАЯ ВАЖНАЯ !!!
         // Без нее конфиг наказаний не загрузится и будет ошибка
         PunishmentManager.init(this);
+        getServer().getPluginManager().registerEvents(new PunishmentListener(), this);
 
         // Ранги
         if (getCommand("setrank") != null) getCommand("setrank").setExecutor(new RankCommand());
@@ -80,6 +82,8 @@ public class LastApi extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new net.jetluna.api.parkour.ParkourManager(), this);
 
         if (getCommand("lang") != null) getCommand("lang").setExecutor(new net.jetluna.api.lang.LangCommand());
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.api.color.PrefixColorGui(), this);
     }
 
     public static LastApi getInstance() { return instance; }

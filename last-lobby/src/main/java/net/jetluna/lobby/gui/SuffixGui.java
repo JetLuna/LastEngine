@@ -1,10 +1,12 @@
 package net.jetluna.lobby.gui;
 
 import net.jetluna.api.lang.LanguageManager;
+import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.api.util.NameFormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -70,6 +72,9 @@ public class SuffixGui implements Listener {
 
         Set<String> owned = unlockedSuffixes.getOrDefault(player.getUniqueId(), new HashSet<>(Collections.singletonList("DEFAULT")));
 
+        // --- БЕРЕМ КРАСИВЫЙ НИК ---
+        String formattedName = NameFormatUtil.getFormattedName(player, RankManager.getRank(player));
+
         for (Suffix s : Suffix.values()) {
             if (s.categoryId.equals(categoryId)) {
                 String suffixName = color(LanguageManager.getString(player, "lobby.suffix_gui.list." + s.name().toLowerCase() + ".name"));
@@ -78,7 +83,8 @@ public class SuffixGui implements Listener {
                 ItemBuilder builder = new ItemBuilder(s.icon).setName("&b" + suffixName);
                 List<String> lore = new ArrayList<>();
 
-                String formatLore = color(LanguageManager.getString(player, "lobby.suffix_gui.format")).replace("%format%", player.getName() + rawFormat);
+                // ПРЕДПРОСМОТР С КРАСИВЫМ НИКОМ!
+                String formatLore = color(LanguageManager.getString(player, "lobby.suffix_gui.format")).replace("%format%", formattedName + rawFormat);
                 lore.add(formatLore);
                 lore.add("");
 

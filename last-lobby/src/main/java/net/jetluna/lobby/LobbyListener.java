@@ -7,6 +7,7 @@ import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.api.util.NameFormatUtil;
 import net.jetluna.lobby.gui.SettingsGui;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -44,18 +45,19 @@ public class LobbyListener implements Listener {
         LobbyItems.giveItems(player);
         new LobbyCommand(plugin).teleportToLobby(player);
 
-        // Джоинеры (Сообщения при входе)
+        // --- ДЖОИНЕРЫ (Красивые сообщения при входе) ---
         Rank rank = RankManager.getRank(player);
-        String prefix = color(rank.getPrefix());
-
-        // Получаем суффикс из ГЛОБАЛЬНОЙ статистики
         PlayerStats stats = StatsManager.getStats(player);
         String suffix = (stats != null && stats.getSuffix() != null) ? color(stats.getSuffix()) : "";
 
-        // Склеиваем всё вместе (через наш новый color)
+        // 1. Получаем готовый красивый ник (с кастомным цветом)
+        String formattedName = NameFormatUtil.getFormattedName(player, rank);
+
+        // 2. Вставляем его в сообщение. Отдельный плейсхолдер %prefix% заменяем на пустоту,
+        // так как префикс уже красиво вшит внутри formattedName
         String joinMsg = color(net.jetluna.lobby.gui.JoinerGui.getActiveMessage(player))
-                .replace("%player%", player.getName())
-                .replace("%prefix%", prefix)
+                .replace("%prefix%", "")
+                .replace("%player%", formattedName)
                 .replace("%suffix%", suffix);
 
         event.setJoinMessage(joinMsg);
@@ -77,6 +79,10 @@ public class LobbyListener implements Listener {
                 }, 10L);
             } catch (IllegalArgumentException ignored) {}
         }
+        // Делаем небольшую задержку (5 тиков), чтобы Scoreboard точно успел загрузиться
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            net.jetluna.api.util.NameFormatUtil.refreshNameTags();
+        }, 5L);
     }
 
     @EventHandler
@@ -282,5 +288,16 @@ public class LobbyListener implements Listener {
                 }
             }
         }
+    }
+
+    // --- ЗВУК ПРИ СМЕНЕ СЛОТА В ХОТБАРЕ ---
+    @EventHandler
+    public void onItemHeldChange(org.bukkit.event.player.PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+
+        // ENTITY_EXPERIENCE_ORB_PICKUP - звук опыта
+        // 0.2f - очень тихая громкость
+        // 2.0f - максимальная тональность (делает звук очень коротким и "булькающим")
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.2f, 2.0f);
     }
 }

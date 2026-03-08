@@ -104,7 +104,7 @@ public class PunishCommand implements CommandExecutor {
             return true;
         }
 
-        String adminDisplay = RankManager.getPrefix(admin) + admin.getName();
+        String adminDisplay = net.jetluna.api.util.NameFormatUtil.getFormattedName(admin, adminRank);
 
         // KICK
         if (cmd.equals("kick")) {

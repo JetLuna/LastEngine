@@ -1,7 +1,7 @@
 package net.jetluna.lobby;
 
+import net.jetluna.api.util.PrefixColorManager;
 import net.jetluna.api.lang.LanguageManager;
-// import net.jetluna.lobby.gui.LobbyGui; <--- УБРАЛ ЭТУ СТРОКУ, ОНА ВЫЗЫВАЛА ОШИБКУ
 import net.jetluna.lobby.gui.RewardGui;
 import net.jetluna.lobby.gui.SettingsGui;
 import net.jetluna.lobby.npc.NpcManager;
@@ -61,6 +61,13 @@ public class LobbyPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(this.flyingPigManager, this);
 
         getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.LanguageGui(), this);
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new net.jetluna.lobby.npc.NpcPlaceholder().register();
+        }
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.DonateGui(), this);
+
+        PrefixColorManager.init(this);
     }
 
     @Override

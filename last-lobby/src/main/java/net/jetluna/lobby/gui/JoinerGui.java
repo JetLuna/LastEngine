@@ -7,6 +7,7 @@ import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.api.util.NameFormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -65,9 +66,9 @@ public class JoinerGui implements Listener {
         String currentSelected = selectedJoiner.getOrDefault(player.getUniqueId(), "DEFAULT");
         Set<String> owned = unlockedJoiners.getOrDefault(player.getUniqueId(), new HashSet<>(Collections.singletonList("DEFAULT")));
 
+        // --- БЕРЕМ КРАСИВЫЙ НИК ---
         Rank rank = RankManager.getRank(player);
-        String rawPrefix = rank.getWeight() == 1 ? "&7" : rank.getPrefix();
-        String legacyPrefix = color(rawPrefix);
+        String formattedName = NameFormatUtil.getFormattedName(player, rank);
         String suffix = SuffixGui.getActiveSuffix(player);
 
         for (Joiner j : Joiner.values()) {
@@ -78,9 +79,10 @@ public class JoinerGui implements Listener {
                 ItemBuilder builder = new ItemBuilder(j.icon).setName("&b" + joinerName);
                 List<String> lore = new ArrayList<>();
 
+                // --- ПРЕДПРОСМОТР С КРАСИВЫМ НИКОМ ---
                 String rawFormat = rawFormatFromConfig
-                        .replace("%player%", player.getName())
-                        .replace("%prefix%", legacyPrefix)
+                        .replace("%prefix%", "")
+                        .replace("%player%", formattedName)
                         .replace("%suffix%", suffix);
 
                 String formatLore = color(LanguageManager.getString(player, "lobby.joiner_gui.format")).replace("%format%", color(rawFormat));

@@ -56,7 +56,10 @@ public class LobbyGui implements Listener {
         if (stats == null) return;
 
         Rank rank = RankManager.getRank(player);
-        String rankDisplay = (rank.getWeight() == 1) ? "§7Player" : color(rank.getPrefix());
+
+        // --- ПРАВИЛЬНОЕ ОТОБРАЖЕНИЕ РАНГА В LORE (С кастомным цветом) ---
+        String rankDisplay = net.jetluna.api.util.NameFormatUtil.getFormattedRank(player, rank);
+
         String progressBar = getProgressBar(stats.getExp(), 1000);
 
         List<String> lore = LanguageManager.getList(player, "lobby.profile_gui.info.lore");
@@ -74,9 +77,13 @@ public class LobbyGui implements Listener {
             );
         }
 
+        // --- ИСПОЛЬЗУЕМ ОБЫЧНЫЙ КРАСИВЫЙ ФОРМАТ ДЛЯ ГОЛОВЫ ---
+        String guiName = net.jetluna.api.util.NameFormatUtil.getFormattedName(player, rank);
+        String headName = color(LanguageManager.getString(player, "lobby.profile_gui.info.name")).replace("%player%", guiName);
+
         ItemStack info = new ItemBuilder(Material.PLAYER_HEAD)
                 .setOwner(player.getName())
-                .setName(color(LanguageManager.getString(player, "lobby.profile_gui.info.name")))
+                .setName(headName)
                 .setLore(finalLore)
                 .build();
         gui.setItem(13, info);
@@ -93,14 +100,21 @@ public class LobbyGui implements Listener {
                 .setLore(colorList(player, "lobby.profile_gui.cosmetics.lore"))
                 .build());
 
-        player.openInventory(gui);
-
         // --- КНОПКА ЯЗЫКА (Текстура планеты Земля) ---
         gui.setItem(22, net.jetluna.lobby.gui.LanguageGui.getHeadItem(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2Y0MDk0MmYzNjRmNmNiY2VmZmNmMTE1MTc5NjQxMDI4NmE0OGIxYWViYTc3MjQzZTIxODAyNmMwOWNkMSJ9fX0=",
                 color(LanguageManager.getString(player, "lobby.profile_gui.language.name")),
                 colorList(player, "lobby.profile_gui.language.lore")
         ));
+
+        // --- КНОПКА ДОНАТА (С ЛОКАЛИЗАЦИЕЙ) ---
+        gui.setItem(31, new ItemBuilder(Material.GOLD_INGOT)
+                .setName(color(LanguageManager.getString(player, "lobby.profile_gui.donate.name")))
+                .setLore(colorList(player, "lobby.profile_gui.donate.lore"))
+                .setGlow(true)
+                .build());
+
+        player.openInventory(gui);
     }
 
     private static String getProgressBar(int current, int max) {
@@ -132,6 +146,7 @@ public class LobbyGui implements Listener {
 
         int slot = event.getSlot();
 
+        // Единый блок обработки кликов в профиле
         if (currentTitle.equals(profileTitle)) {
             if (slot == 10) {
                 SettingsGui.open(player);
@@ -139,18 +154,11 @@ public class LobbyGui implements Listener {
             } else if (slot == 16) {
                 net.jetluna.lobby.gui.CustomizationGui.open(player);
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            }
-        }
-
-        if (currentTitle.equals(profileTitle)) {
-            if (slot == 10) {
-                SettingsGui.open(player);
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            } else if (slot == 16) {
-                net.jetluna.lobby.gui.CustomizationGui.open(player);
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            } else if (slot == 22) { // <--- НАШ НОВЫЙ СЛОТ
+            } else if (slot == 22) {
                 net.jetluna.lobby.gui.LanguageGui.open(player);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+            } else if (slot == 31) {
+                net.jetluna.lobby.gui.DonateGui.open(player);
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             }
         }

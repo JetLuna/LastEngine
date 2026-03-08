@@ -76,12 +76,7 @@ public class FlyingPigManager implements Listener {
 
         bomberPig = (Pig) spawn.getWorld().spawnEntity(spawn, EntityType.PIG);
         bomberPig.setInvulnerable(true);
-
-        // Берем имя с амперсандами и красим!
-        String rawName = net.jetluna.api.lang.LanguageManager.getString(null, "lobby.pig.name");
-        bomberPig.setCustomName(color(rawName));
-
-        bomberPig.setCustomNameVisible(true);
+        bomberPig.setCustomNameVisible(false); // Имя полностью выключено
         bomberPig.setRemoveWhenFarAway(false);
         bomberPig.getPersistentDataContainer().set(pigTag, PersistentDataType.BYTE, (byte) 1);
 

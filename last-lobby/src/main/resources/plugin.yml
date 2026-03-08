@@ -5,6 +5,9 @@ api-version: 1.21
 depend:
   - LastApi
   - Citizens
+  - DecentHolograms
+softdepend:
+  - PlaceholderAPI
 commands:
   lobby:
     description: На спавн

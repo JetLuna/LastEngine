@@ -7,6 +7,7 @@ import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.Rank;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
+import net.jetluna.api.util.NameFormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -37,15 +38,19 @@ public class StaffNotifier {
 
         String ip = player.getAddress().getAddress().getHostAddress();
 
+        // --- БЕРЕМ КРАСИВЫЙ НИК ---
+        String formattedName = NameFormatUtil.getFormattedName(player, rank);
+
         Bukkit.getScheduler().runTaskAsynchronously(LastApi.getInstance(), () -> {
             String location = getGeo(ip);
-            String prefix = rank.getPrefix();
 
-            broadcastLocal(prefix, player.getName(), suffix, location, ip);
+            // Передаем отформатированный ник в локальный бродкаст
+            broadcastLocal(formattedName, suffix, location, ip);
 
+            // Убираем %prefix% и заменяем %player% на наш готовый ник
             String defaultBase = color(LanguageManager.getString(null, "staff.join_message"))
-                    .replace("%prefix%", prefix)
-                    .replace("%player%", player.getName())
+                    .replace("%prefix%", "")
+                    .replace("%player%", formattedName)
                     .replace("%suffix%", suffix);
 
             String defaultAdmin = color(LanguageManager.getString(null, "staff.admin_info"))
@@ -74,13 +79,15 @@ public class StaffNotifier {
         return color(LanguageManager.getString(null, "staff.unknown_location"));
     }
 
-    public static void broadcastLocal(String prefix, String playerName, String suffix, String location, String ip) {
+    // Изменили сигнатуру: теперь принимаем отформатированное имя вместо prefix + playerName
+    public static void broadcastLocal(String formattedName, String suffix, String location, String ip) {
         for (Player p : Bukkit.getOnlinePlayers()) {
             Rank rank = RankManager.getRank(p);
             if (rank.getWeight() >= STAFF_WEIGHT) {
+
                 String baseMessage = color(LanguageManager.getString(p, "staff.join_message"))
-                        .replace("%prefix%", prefix)
-                        .replace("%player%", playerName)
+                        .replace("%prefix%", "")
+                        .replace("%player%", formattedName)
                         .replace("%suffix%", suffix);
 
                 if (rank.getWeight() >= ADMIN_WEIGHT) {

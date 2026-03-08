@@ -4,6 +4,7 @@ import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
+import net.jetluna.api.util.NameFormatUtil;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -71,8 +72,9 @@ public class MsgCommand implements CommandExecutor {
         replies.put(sender.getUniqueId(), target.getUniqueId());
         replies.put(target.getUniqueId(), sender.getUniqueId());
 
-        String senderPrefix = toLegacy(RankManager.getPrefix(sender));
-        String targetPrefix = toLegacy(RankManager.getPrefix(target));
+        // --- БЕРЕМ КРАСИВЫЕ НИКИ ИЗ НАШЕГО УТИЛИТА ---
+        String senderName = NameFormatUtil.getFormattedName(sender, RankManager.getRank(sender));
+        String targetName = NameFormatUtil.getFormattedName(target, RankManager.getRank(target));
 
         PlayerStats senderStats = StatsManager.getStats(sender);
         String senderSuffix = (senderStats != null && senderStats.getSuffix() != null) ? senderStats.getSuffix().replace("&", "§") : "";
@@ -84,7 +86,7 @@ public class MsgCommand implements CommandExecutor {
         String senderMe = LanguageManager.getString(sender, "chat.msg.me");
         String senderHover = LanguageManager.getString(sender, "chat.msg.hover_suggest");
 
-        String sText = "&8[" + senderMe + " &8-> " + targetPrefix + target.getName() + targetSuffix + "&8] &f" + message;
+        String sText = "&8[" + senderMe + " &8-> " + targetName + targetSuffix + "&8] &f" + message;
         BaseComponent[] senderComp = TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', sText));
         for (BaseComponent c : senderComp) {
             c.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/msg " + target.getName() + " "));
@@ -95,7 +97,7 @@ public class MsgCommand implements CommandExecutor {
         String targetMe = LanguageManager.getString(target, "chat.msg.me");
         String targetHover = LanguageManager.getString(target, "chat.msg.hover_reply");
 
-        String tText = "&8[" + senderPrefix + sender.getName() + senderSuffix + " &8-> " + targetMe + "&8] &f" + message;
+        String tText = "&8[" + senderName + senderSuffix + " &8-> " + targetMe + "&8] &f" + message;
         BaseComponent[] targetComp = TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', tText));
         for (BaseComponent c : targetComp) {
             c.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/msg " + sender.getName() + " "));
@@ -106,10 +108,5 @@ public class MsgCommand implements CommandExecutor {
         target.spigot().sendMessage(targetComp);
 
         target.playSound(target.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 2f);
-    }
-
-    private String toLegacy(String text) {
-        if (text == null) return "";
-        return text.replace("<dark_red>", "&4").replace("</dark_red>", "").replace("<red>", "&c").replace("</red>", "").replace("<gold>", "&6").replace("</gold>", "").replace("<yellow>", "&e").replace("</yellow>", "").replace("<dark_green>", "&2").replace("</dark_green>", "").replace("<green>", "&a").replace("</green>", "").replace("<aqua>", "&b").replace("</aqua>", "").replace("<dark_aqua>", "&3").replace("</dark_aqua>", "").replace("<dark_blue>", "&1").replace("</dark_blue>", "").replace("<blue>", "&9").replace("</blue>", "").replace("<light_purple>", "&d").replace("</light_purple>", "").replace("<dark_purple>", "&5").replace("</dark_purple>", "").replace("<white>", "&f").replace("</white>", "").replace("<gray>", "&7").replace("</gray>", "").replace("<dark_gray>", "&8").replace("</dark_gray>", "").replace("<black>", "&0").replace("</black>", "").replace("<bold>", "&l").replace("</bold>", "").replace("<italic>", "&o").replace("</italic>", "").replace("<strikethrough>", "&m").replace("</strikethrough>", "").replace("<underlined>", "&n").replace("</underlined>", "").replace("<obfuscated>", "&k").replace("</obfuscated>", "").replace("<reset>", "&r").replace("</reset>", "").replaceAll("<[^>]+>", "");
     }
 }

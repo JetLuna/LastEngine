@@ -9,6 +9,19 @@ general:
   player_not_found: "&cПомилка &8» &cГравця не знайдено."
 
 lobby:
+  donate_gui:
+    title: "&e&lМеню донату"
+    prefix_color:
+      name: "&d&lЗмінити колір префікса"
+      lore:
+        - "&7"
+        - "&7Встановіть колір свого префікса,"
+        - "&7щоб виділятися в чаті та табі!"
+        - "&7"
+        - "&8Доступно для: &5MAX&8, &cADMIN&8, &4DEV"
+        - "&7"
+        - "&eНатисніть, щоб відкрити!"
+    back: "&cНазад"
   board:
     title: "&6&lLAST ENGINE"
     info_title: "&2Інформація:"
@@ -232,10 +245,10 @@ lobby:
   npc:
     bedwars:
       name: "&c&lBedWars"
-      holo: "&7Онлайн: &a%online%"
+      holo: "&7Скоро..."
     vanilla:
       name: "&a&lVanilla"
-      holo: "&7Онлайн: &a%online%"
+      holo: "&7Скоро..."
     duels:
       name: "&e&lDuels"
       holo: "&7Скоро..."
@@ -265,6 +278,13 @@ lobby:
       received_emeralds: "&a+ %amount% смарагдів"
 
   profile_gui:
+    donate:
+      name: "&e&lМеню донату"
+      lore:
+        - "&7Різні можливості,"
+        - "&7кастомізація та покупки."
+        - ""
+        - "&eНатисніть, щоб відкрити!"
     language:
       name: "&bМова"
       lore:
@@ -362,7 +382,6 @@ lobby:
     physics_off_desc: "&7(Квіти висять у повітрі, пісок не падає)"
 
   pig:
-    name: "&d&lСвин-Бомбардувальник"
     boom: "&d&lСвин-Бомбардувальник &8» &c&lБАБАХ!!!"
 
 auth:
@@ -808,3 +827,26 @@ stream:
       youtube: "&cYouTube"
       other: "&fТрансляція"
     chat_link: "&8[&bСтріми&8] &fПосилання на стрім &b%streamer%&f: &e&n%url%"
+color_gui:
+  title: "&8Вибір кольору префікса"
+  no_permission: "&cУ вас немає прав для зміни кольору префікса!"
+  reset_name: "&c&lСкинути колір"
+  reset_lore:
+    - "&7Натисніть, щоб повернути"
+    - "&7стандартний колір вашого рангу."
+  success_reset: "&aВи успішно скинули колір префікса до стандартного!"
+  success_change: "&aВи успішно змінили колір префікса на %color%&a!"
+  example_text: "&7Приклад у чаті:"
+  preview_format: "%color%&l%prefix% %color%%player% &8» &fПривіт!"
+  status_selected: "&a&lВИБРАНО"
+  status_unselected: "&eНатисніть, щоб обрати!"
+  colors:
+    dark_red: "Червоний"
+    gold: "Помаранчевий"
+    yellow: "Жовтий"
+    green: "Зелений"
+    blue: "Синій"
+    aqua: "Блакитний"
+    dark_purple: "Фіолетовий"
+    light_purple: "Рожевий"
+    white: "Білий"

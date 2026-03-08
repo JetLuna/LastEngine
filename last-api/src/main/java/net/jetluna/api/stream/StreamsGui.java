@@ -1,8 +1,10 @@
 package net.jetluna.api.stream;
 
 import net.jetluna.api.lang.LanguageManager;
+import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.api.util.NameFormatUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -47,8 +49,14 @@ public class StreamsGui implements Listener {
                 List<String> lore = colorList(player, "stream.gui.item_lore");
                 lore.replaceAll(s -> s.replace("%platform%", platformStr));
 
+                // --- КРАСИВЫЙ НИК ДЛЯ ИКОНКИ ---
+                Player targetPlayer = Bukkit.getPlayerExact(streamerName);
+                String displayName = targetPlayer != null
+                        ? NameFormatUtil.getFormattedName(targetPlayer, RankManager.getRank(targetPlayer))
+                        : "§7" + streamerName;
+
                 org.bukkit.inventory.ItemStack headItem = new ItemBuilder(Material.PLAYER_HEAD)
-                        .setName("&b" + streamerName)
+                        .setName(displayName) // Ставим отформатированный ник!
                         .setLore(lore).build();
 
                 org.bukkit.inventory.meta.ItemMeta meta = headItem.getItemMeta();
@@ -74,15 +82,25 @@ public class StreamsGui implements Listener {
 
         if (event.getCurrentItem() == null || event.getCurrentItem().getType() != Material.PLAYER_HEAD) return;
 
-        String streamerName = ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName());
+        // --- УМНЫЙ ПАРСИНГ НИКА (Отделяем префикс) ---
+        String rawName = ChatColor.stripColor(event.getCurrentItem().getItemMeta().getDisplayName());
+        String[] nameParts = rawName.split(" ");
+        // Если есть префикс, заберем 2-е слово. Если нет (обычный игрок) - заберем 1-е.
+        String streamerName = nameParts[nameParts.length - 1];
+
         String url = StreamManager.getActiveStreams().get(streamerName);
 
         if (url != null) {
             player.closeInventory();
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
 
+            Player targetPlayer = Bukkit.getPlayerExact(streamerName);
+            String formattedStreamer = targetPlayer != null
+                    ? NameFormatUtil.getFormattedName(targetPlayer, RankManager.getRank(targetPlayer))
+                    : streamerName;
+
             String chatLinkRaw = color(LanguageManager.getString(player, "stream.gui.chat_link")
-                    .replace("%streamer%", streamerName)
+                    .replace("%streamer%", formattedStreamer)
                     .replace("%url%", url));
 
             String hoverText = color(LanguageManager.getString(player, "stream.announcement.hover_text"));

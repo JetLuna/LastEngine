@@ -1,7 +1,9 @@
 package net.jetluna.api.stats;
 
 import net.jetluna.api.lang.LanguageManager;
+import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.util.ChatUtil;
+import net.jetluna.api.util.NameFormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -13,7 +15,6 @@ public class EcoCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        // Определяем, кто отправил команду (игрок или консоль), чтобы получить нужный язык
         Player p = sender instanceof Player ? (Player) sender : null;
 
         if (!sender.hasPermission("last.admin")) {
@@ -48,13 +49,16 @@ public class EcoCommand implements CommandExecutor {
             return true;
         }
 
+        // --- БЕРЕМ КРАСИВЫЙ НИК ЦЕЛИ ---
+        String formattedTargetName = NameFormatUtil.getFormattedName(target, RankManager.getRank(target));
+
         if (type.equals("coins") || type.equals("coin") || type.equals("c")) {
             if (action.equals("give") || action.equals("add")) stats.setCoins(stats.getCoins() + amount);
             else if (action.equals("set")) stats.setCoins(amount);
 
             String msg = LanguageManager.getString(p, "eco.success_coins")
                     .replace("%amount%", String.valueOf(amount))
-                    .replace("%player%", target.getName());
+                    .replace("%player%", formattedTargetName);
             ChatUtil.sendMessage(sender, msg);
         }
         else if (type.equals("emeralds") || type.equals("emerald") || type.equals("e")) {
@@ -63,7 +67,7 @@ public class EcoCommand implements CommandExecutor {
 
             String msg = LanguageManager.getString(p, "eco.success_emeralds")
                     .replace("%amount%", String.valueOf(amount))
-                    .replace("%player%", target.getName());
+                    .replace("%player%", formattedTargetName);
             ChatUtil.sendMessage(sender, msg);
         }
         else {

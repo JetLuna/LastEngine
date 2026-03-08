@@ -1,10 +1,12 @@
 package net.jetluna.api.report;
 
 import net.jetluna.api.lang.LanguageManager;
+import net.jetluna.api.rank.RankManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.api.util.NameFormatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -48,7 +50,13 @@ public class ReportsGui implements Listener {
                 String targetName = reportedPlayers.get(i);
                 int reportCount = ReportManager.getReportsFor(targetName).size();
 
-                String headName = color(LanguageManager.getString(player, "report.gui.head_name")).replace("%player%", targetName);
+                // --- КРАСИВЫЙ НИК ДЛЯ ИКОНКИ ---
+                Player targetPlayer = Bukkit.getPlayerExact(targetName);
+                String displayName = targetPlayer != null
+                        ? NameFormatUtil.getFormattedName(targetPlayer, RankManager.getRank(targetPlayer))
+                        : "§7" + targetName;
+
+                String headName = color(LanguageManager.getString(player, "report.gui.head_name")).replace("%player%", displayName);
                 List<String> headLore = colorList(player, "report.gui.head_lore");
                 headLore.replaceAll(s -> s.replace("%count%", String.valueOf(reportCount)));
 
@@ -162,26 +170,24 @@ public class ReportsGui implements Listener {
         String rawBtnBack = ChatColor.stripColor(color(LanguageManager.getString(staff, "report.gui.btn_back")));
 
         // --- ГЛАВНОЕ МЕНЮ ---
-        if (title.startsWith(mainPrefix)) {
-            int page = Integer.parseInt(title.substring(mainPrefix.length()));
+        if (item.getType() == Material.PLAYER_HEAD) {
+            String headBase = ChatColor.stripColor(color(LanguageManager.getString(staff, "report.gui.head_name")));
+            String headPrefix = headBase.substring(0, headBase.indexOf("%player%"));
 
-            if (itemName.equals(rawBtnNext)) { staff.playSound(staff.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f); open(staff, page + 1); return; }
-            if (itemName.equals(rawBtnPrev)) { staff.playSound(staff.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f); open(staff, page - 1); return; }
+            // Убираем префикс из конфига
+            String rawNameWithRank = itemName.replace(headPrefix, "");
 
-            if (item.getType() == Material.PLAYER_HEAD) {
-                String headBase = ChatColor.stripColor(color(LanguageManager.getString(staff, "report.gui.head_name")));
-                String headPrefix = headBase.substring(0, headBase.indexOf("%player%"));
-                String targetName = itemName.replace(headPrefix, "");
+            // --- УМНЫЙ ПАРСИНГ НИКА ---
+            String[] nameParts = rawNameWithRank.split(" ");
+            String targetName = nameParts[nameParts.length - 1]; // Забираем только ник
 
-                if (event.isLeftClick()) {
-                    staff.playSound(staff.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-                    openPlayerReports(staff, targetName, 1);
-                } else if (event.isRightClick()) {
-                    staff.playSound(staff.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-                    openManagePlayer(staff, targetName);
-                }
+            if (event.isLeftClick()) {
+                staff.playSound(staff.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+                openPlayerReports(staff, targetName, 1);
+            } else if (event.isRightClick()) {
+                staff.playSound(staff.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+                openManagePlayer(staff, targetName);
             }
-            return;
         }
 
         // --- МЕНЮ ПРОСМОТРА ЖАЛОБ ---
@@ -213,7 +219,11 @@ public class ReportsGui implements Listener {
                 if (target != null && target.isOnline()) {
                     staff.teleport(target.getLocation());
                     staff.closeInventory();
-                    String msg = LanguageManager.getString(staff, "report.messages.teleport_success").replace("%player%", targetName);
+
+                    // КРАСИВЫЙ НИК ПРИ ТЕЛЕПОРТАЦИИ
+                    String formattedTarget = NameFormatUtil.getFormattedName(target, RankManager.getRank(target));
+                    String msg = LanguageManager.getString(staff, "report.messages.teleport_success").replace("%player%", formattedTarget);
+
                     ChatUtil.sendMessage(staff, msg);
                     staff.playSound(staff.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
                 } else {
@@ -226,14 +236,21 @@ public class ReportsGui implements Listener {
                 List<ReportManager.Report> reports = ReportManager.getReportsFor(targetName);
                 Set<String> uniqueSenders = reports.stream().map(r -> r.sender).collect(Collectors.toSet());
 
+                // Получаем красивый ник нарушителя для рассылки наград
+                Player targetPlayer = Bukkit.getPlayerExact(targetName);
+                String formattedTarget = targetPlayer != null ? NameFormatUtil.getFormattedName(targetPlayer, RankManager.getRank(targetPlayer)) : targetName;
+
                 for (String senderName : uniqueSenders) {
                     Player senderPlayer = Bukkit.getPlayerExact(senderName);
                     if (senderPlayer != null && senderPlayer.isOnline()) {
                         PlayerStats stats = StatsManager.getStats(senderPlayer);
                         if (stats != null) {
                             stats.setCoins(stats.getCoins() + 1000);
-                            String msg1 = LanguageManager.getString(senderPlayer, "report.messages.reward_1").replace("%player%", targetName);
+
+                            // Вставляем красивый ник в сообщение
+                            String msg1 = LanguageManager.getString(senderPlayer, "report.messages.reward_1").replace("%player%", formattedTarget);
                             ChatUtil.sendMessage(senderPlayer, msg1);
+
                             LanguageManager.sendMessage(senderPlayer, "report.messages.reward_2");
                             senderPlayer.playSound(senderPlayer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
                         }
