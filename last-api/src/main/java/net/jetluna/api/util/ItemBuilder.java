@@ -65,6 +65,15 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder setUnbreakable(boolean unbreakable) {
+        if (meta != null) {
+            meta.setUnbreakable(unbreakable);
+            // Скрываем дурацкую серую надпись "Неразрушимый" под предметом
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
+        }
+        return this;
+    }
+
     public ItemBuilder setOwner(String owner) {
         if (meta instanceof SkullMeta) {
             ((SkullMeta) meta).setOwner(owner);

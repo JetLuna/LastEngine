@@ -1,23 +1,51 @@
 package net.jetluna.api.cosmetic;
 
+import net.jetluna.api.LastApi;
 import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class CosmeticListener implements Listener {
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+
+        // Также ждем 10 тиков перед загрузкой баннеров
+        Bukkit.getScheduler().runTaskLater(LastApi.getInstance(), () -> {
+            Bukkit.getScheduler().runTaskAsynchronously(LastApi.getInstance(), () -> {
+                CosmeticManager.loadCosmetics(player.getUniqueId());
+                String equipped = CosmeticManager.getEquipped(player);
+
+                if (equipped != null && !equipped.isEmpty()) {
+                    Bukkit.getScheduler().runTask(LastApi.getInstance(), () -> {
+                        player.getInventory().setHelmet(CosmeticManager.getBannerById(player, equipped));
+                    });
+                }
+            });
+        }, 10L);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        // Очищаем кэш косметики при выходе
+        CosmeticManager.unloadCosmetics(event.getPlayer().getUniqueId());
+    }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
 
-        // Получаем переведенный заголовок меню для текущего игрока
         String expectedTitle = CosmeticManager.toLegacy(LanguageManager.getString(player, "cosmetics.gui.title"));
         if (!event.getView().getTitle().equals(expectedTitle)) return;
 
@@ -29,28 +57,28 @@ public class CosmeticListener implements Listener {
 
         switch (slot) {
             case 11:
-                player.getInventory().setHelmet(CosmeticManager.getLastEngineBanner(player));
+                CosmeticManager.setEquipped(player, "standard");
                 successEquip(player);
                 break;
             case 13:
-                player.getInventory().setHelmet(CosmeticManager.getPirateBanner(player));
+                CosmeticManager.setEquipped(player, "pirate");
                 successEquip(player);
                 break;
             case 15:
-                player.getInventory().setHelmet(CosmeticManager.getRoyalBanner(player));
+                CosmeticManager.setEquipped(player, "royal");
                 successEquip(player);
                 break;
             case 20:
-                handlePurchase(player, "ukraine", 500, CosmeticManager.getUkraineBanner(player));
+                handlePurchase(player, "ukraine", 500);
                 break;
             case 22:
-                handlePurchase(player, "creeper", 750, CosmeticManager.getCreeperBanner(player));
+                handlePurchase(player, "creeper", 750);
                 break;
             case 24:
-                handlePurchase(player, "crusader", 1000, CosmeticManager.getCrusaderBanner(player));
+                handlePurchase(player, "crusader", 1000);
                 break;
             case 31:
-                CosmeticManager.removeCosmetic(player);
+                CosmeticManager.setEquipped(player, null);
                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
                 player.closeInventory();
                 LanguageManager.sendMessage(player, "cosmetics.messages.removed");
@@ -64,9 +92,9 @@ public class CosmeticListener implements Listener {
         player.closeInventory();
     }
 
-    private void handlePurchase(Player player, String id, int price, org.bukkit.inventory.ItemStack banner) {
+    private void handlePurchase(Player player, String id, int price) {
         if (CosmeticManager.hasPurchased(player, id)) {
-            player.getInventory().setHelmet(banner);
+            CosmeticManager.setEquipped(player, id);
             successEquip(player);
             return;
         }
@@ -79,11 +107,10 @@ public class CosmeticListener implements Listener {
             StatsManager.saveStats(player);
 
             CosmeticManager.setPurchased(player, id);
+            CosmeticManager.setEquipped(player, id);
 
-            player.getInventory().setHelmet(banner);
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
 
-            // Динамическая замена цены в сообщении
             String msg = LanguageManager.getString(player, "cosmetics.messages.purchased").replace("%price%", String.valueOf(price));
             ChatUtil.sendMessage(player, msg);
 

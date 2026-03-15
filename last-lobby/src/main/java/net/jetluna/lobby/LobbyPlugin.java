@@ -2,6 +2,7 @@ package net.jetluna.lobby;
 
 import net.jetluna.api.util.PrefixColorManager;
 import net.jetluna.api.lang.LanguageManager;
+import net.jetluna.lobby.gui.FriendsGui;
 import net.jetluna.lobby.gui.RewardGui;
 import net.jetluna.lobby.gui.SettingsGui;
 import net.jetluna.lobby.npc.NpcManager;
@@ -68,6 +69,16 @@ public class LobbyPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.DonateGui(), this);
 
         PrefixColorManager.init(this);
+
+        getServer().getPluginManager().registerEvents(new FriendsGui(), this);
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.FriendRequestsGui(), this);
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.gui.BestPlayerGui(), this);
+
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
+        getServer().getPluginManager().registerEvents(new net.jetluna.lobby.multilobby.LobbySelectorListener(), this);
     }
 
     @Override
@@ -83,6 +94,9 @@ public class LobbyPlugin extends JavaPlugin {
         spawnOneNpc("vanilla", "lobby.npc.vanilla.name", "Notch");
         spawnOneNpc("duels", "lobby.npc.duels.name", "Huahwi");
         spawnOneNpc("rewards", "lobby.npc.rewards.name", "Santa");
+
+        String bestSkin = net.jetluna.api.bestplayer.BestPlayerManager.isExpired() ? "MHF_Question" : net.jetluna.api.bestplayer.BestPlayerManager.getCurrentName();
+        spawnOneNpc("bestplayer", "lobby.npc.bestplayer.name", bestSkin);
     }
 
     private void spawnOneNpc(String id, String langKey, String skin) {

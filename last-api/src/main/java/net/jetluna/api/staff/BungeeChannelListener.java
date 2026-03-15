@@ -1,5 +1,6 @@
 package net.jetluna.api.staff;
 
+import net.jetluna.api.chat.ChatCommands;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
@@ -22,13 +23,26 @@ public class BungeeChannelListener implements PluginMessageListener {
                 in.readFully(msgBytes);
 
                 DataInputStream msgIn = new DataInputStream(new ByteArrayInputStream(msgBytes));
-
-                // Читаем две переменные по очереди
                 String baseMessage = msgIn.readUTF();
                 String adminPart = msgIn.readUTF();
 
-                // Отправляем в локальный бродкаст (он сам разберется, кому что показывать)
                 StaffNotifier.broadcastLocal(baseMessage, adminPart);
+            }
+            // !!! НОВОЕ: ПРИЕМ ГЛОБАЛЬНОГО ЧАТА !!!
+            else if (subchannel.equals("GlobalChat")) {
+                short len = in.readShort();
+                byte[] msgBytes = new byte[len];
+                in.readFully(msgBytes);
+
+                DataInputStream msgIn = new DataInputStream(new ByteArrayInputStream(msgBytes));
+
+                // Распаковываем данные в том же порядке, в котором запаковали
+                String chatType = msgIn.readUTF();
+                int minWeight = msgIn.readInt();
+                String chatMessage = msgIn.readUTF();
+
+                // Показываем сообщение игрокам на этом сервере
+                ChatCommands.broadcastLocal(chatMessage, minWeight, chatType);
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -133,7 +133,8 @@ public class LobbyListener implements Listener {
 
         if (item.getType() == Material.LIME_DYE || item.getType() == Material.GRAY_DYE) {
             event.setCancelled(true);
-            toggleVisibility(player, item);
+            // Вместо старого toggleVisibility вызываем наш новый надежный метод!
+            net.jetluna.lobby.gui.SettingsGui.toggleVisibility(player);
             playSound(player);
         }
     }

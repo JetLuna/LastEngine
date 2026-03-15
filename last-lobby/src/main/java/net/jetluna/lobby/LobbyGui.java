@@ -7,6 +7,7 @@ import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.ChatUtil;
 import net.jetluna.api.util.ItemBuilder;
+import net.jetluna.lobby.gui.FriendsGui;
 import net.jetluna.lobby.gui.SettingsGui;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -57,9 +58,7 @@ public class LobbyGui implements Listener {
 
         Rank rank = RankManager.getRank(player);
 
-        // --- ПРАВИЛЬНОЕ ОТОБРАЖЕНИЕ РАНГА В LORE (С кастомным цветом) ---
         String rankDisplay = net.jetluna.api.util.NameFormatUtil.getFormattedRank(player, rank);
-
         String progressBar = getProgressBar(stats.getExp(), 1000);
 
         List<String> lore = LanguageManager.getList(player, "lobby.profile_gui.info.lore");
@@ -77,7 +76,6 @@ public class LobbyGui implements Listener {
             );
         }
 
-        // --- ИСПОЛЬЗУЕМ ОБЫЧНЫЙ КРАСИВЫЙ ФОРМАТ ДЛЯ ГОЛОВЫ ---
         String guiName = net.jetluna.api.util.NameFormatUtil.getFormattedName(player, rank);
         String headName = color(LanguageManager.getString(player, "lobby.profile_gui.info.name")).replace("%player%", guiName);
 
@@ -88,30 +86,32 @@ public class LobbyGui implements Listener {
                 .build();
         gui.setItem(13, info);
 
-        // --- АДАПТИРОВАННАЯ КНОПКА НАСТРОЕК ---
         gui.setItem(10, new ItemBuilder(Material.COMPARATOR)
                 .setName(color(LanguageManager.getString(player, "lobby.profile_gui.settings.name")))
                 .setLore(colorList(player, "lobby.profile_gui.settings.lore"))
                 .build());
 
-        // --- АДАПТИРОВАННАЯ КНОПКА КАСТОМИЗАЦИИ ---
         gui.setItem(16, new ItemBuilder(Material.LEATHER_CHESTPLATE)
                 .setName(color(LanguageManager.getString(player, "lobby.profile_gui.cosmetics.name")))
                 .setLore(colorList(player, "lobby.profile_gui.cosmetics.lore"))
                 .build());
 
-        // --- КНОПКА ЯЗЫКА (Текстура планеты Земля) ---
         gui.setItem(22, net.jetluna.lobby.gui.LanguageGui.getHeadItem(
                 "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2Y0MDk0MmYzNjRmNmNiY2VmZmNmMTE1MTc5NjQxMDI4NmE0OGIxYWViYTc3MjQzZTIxODAyNmMwOWNkMSJ9fX0=",
                 color(LanguageManager.getString(player, "lobby.profile_gui.language.name")),
                 colorList(player, "lobby.profile_gui.language.lore")
         ));
 
-        // --- КНОПКА ДОНАТА (С ЛОКАЛИЗАЦИЕЙ) ---
         gui.setItem(31, new ItemBuilder(Material.GOLD_INGOT)
                 .setName(color(LanguageManager.getString(player, "lobby.profile_gui.donate.name")))
                 .setLore(colorList(player, "lobby.profile_gui.donate.lore"))
                 .setGlow(true)
+                .build());
+
+        // --- НОВАЯ КНОПКА: ДРУЗЬЯ ---
+        gui.setItem(28, new ItemBuilder(Material.NAME_TAG)
+                .setName(color(LanguageManager.getString(player, "lobby.profile_gui.friends.name")))
+                .setLore(colorList(player, "lobby.profile_gui.friends.lore"))
                 .build());
 
         player.openInventory(gui);
@@ -120,7 +120,6 @@ public class LobbyGui implements Listener {
     private static String getProgressBar(int current, int max) {
         int totalBars = 10;
         int filledBars = (int) ((double) current / max * totalBars);
-        // Используем § вместо тегов <green>, чтобы Bukkit понимал цвета в Lore
         StringBuilder sb = new StringBuilder("§a");
         for (int i = 0; i < filledBars; i++) sb.append("■");
         sb.append("§7");
@@ -146,7 +145,6 @@ public class LobbyGui implements Listener {
 
         int slot = event.getSlot();
 
-        // Единый блок обработки кликов в профиле
         if (currentTitle.equals(profileTitle)) {
             if (slot == 10) {
                 SettingsGui.open(player);
@@ -159,6 +157,9 @@ public class LobbyGui implements Listener {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             } else if (slot == 31) {
                 net.jetluna.lobby.gui.DonateGui.open(player);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+            } else if (slot == 28) { // КЛИК ПО ДРУЗЬЯМ
+                FriendsGui.open(player);
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
             }
         }

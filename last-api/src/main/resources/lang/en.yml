@@ -9,6 +9,94 @@ general:
   player_not_found: "&cError &8» &cPlayer not found."
 
 lobby:
+  best_player_gui:
+    title: "&8Best Player"
+    status_empty:
+      name: "&e&lBecome the Best Player!"
+      lore:
+        - "&7The best player spot on the server"
+        - "&7is currently &aavailable&7!"
+        - ""
+        - "&7Price: &a%price% emeralds"
+        - "&7Duration: &f7 days"
+        - ""
+        - "&e▶ Click to buy the status!"
+    status_taken:
+      name: "&e&lOutbid the current player!"
+      lore:
+        - "&7Current best player:"
+        - "  %player%"
+        - "&7Their status expires in: &f%time%"
+        - ""
+        - "&7You can overthrow them right now"
+        - "&7by paying more emeralds!"
+        - ""
+        - "&7New price: &a%price% emeralds"
+        - ""
+        - "&e▶ Click to become the best!"
+    already_best: "&cYou are already the best player on the server!"
+    not_enough: "&cYou do not have enough emeralds to buy this status!"
+    success: "&aCongratulations! You are now the Best Player on the server!"
+    broadcast: "&e&l👑 %player% &ebought the &6Best Player of the Server &estatus!"
+  requests_gui:
+    title_main: "&8Friend Requests"
+    title_in: "&8Incoming Requests"
+    title_out: "&8Outgoing Requests"
+    empty:
+      name: "&cNothing here yet!"
+    incoming:
+      name: "&a&lIncoming Requests"
+      lore:
+        - "&7List of players who"
+        - "&7want to become your friends."
+        - ""
+        - "&e▶ Click to view"
+    outgoing:
+      name: "&c&lOutgoing Requests"
+      lore:
+        - "&7List of players to whom"
+        - "&7you have sent a request."
+        - ""
+        - "&e▶ Click to view"
+    item_in:
+      name: "&a%player%"
+      lore:
+        - "&7This player wants to add"
+        - "&7you as a friend."
+        - ""
+        - "&a▶ LMB - Accept"
+        - "&c▶ RMB - Decline"
+    item_out:
+      name: "&c%player%"
+      lore:
+        - "&7You have sent a request"
+        - "&7to this player."
+        - ""
+        - "&c▶ Click to cancel"
+  request_cancelled: "&cВи скасували запит у друзі гравцю %player%&c."
+  requests:
+    name: "&e&lFriend Requests"
+    lore:
+      - "&7Click to view"
+      - "&7incoming and outgoing"
+      - "&7friend requests."
+  friends_gui:
+    title: "&8Your Friends"
+    empty:
+      name: "&cYou have no friends 😔"
+      lore:
+        - "&7Send a request to someone:"
+        - "&f/friend add <player>"
+    friend:
+      name: "&a%player%"
+      lore_online:
+        - "&7Status: &aOnline"
+        - ""
+        - "&c▶ Click to remove"
+      lore_offline:
+        - "&7Status: &cOffline"
+        - ""
+        - "&c▶ Click to remove"
   donate_gui:
     title: "&e&lDonate menu"
     prefix_color:
@@ -123,6 +211,54 @@ lobby:
         format: "%prefix%%player%%suffix% &8unsheathed the Dragon Slayer."
 
   settings_gui:
+    pm_setting:
+      name: "&b&lPrivate Messages"
+      lore_all:
+        - "&7Who can send you"
+        - "&7private messages?"
+        - ""
+        - "&a▶ Everyone"
+        - "&7  Friends only"
+        - "&7  Nobody"
+        - ""
+        - "&eClick to change!"
+      lore_friends:
+        - "&7Who can send you"
+        - "&7private messages?"
+        - ""
+        - "&7  Everyone"
+        - "&a▶ Friends only"
+        - "&7  Nobody"
+        - ""
+        - "&eClick to change!"
+      lore_none:
+        - "&7Who can send you"
+        - "&7private messages?"
+        - ""
+        - "&7  Everyone"
+        - "&7  Friends only"
+        - "&a▶ Nobody"
+        - ""
+        - "&eClick to change!"
+
+    donate_chat:
+      name: "&d&lDonate Chat"
+      lore_enabled:
+        - "&7Display messages"
+        - "&7from the donate chat."
+        - ""
+        - "&a▶ Enabled"
+        - "&7  Disabled"
+        - ""
+        - "&eClick to change!"
+      lore_disabled:
+        - "&7Display messages"
+        - "&7from the donate chat."
+        - ""
+        - "&7  Enabled"
+        - "&c▶ Disabled"
+        - ""
+        - "&eClick to change!"
     title: "Settings"
     visibility:
       "on": "&aPlayers: Visible"
@@ -243,6 +379,8 @@ lobby:
         - "&7start the challenge!"
 
   npc:
+    bestplayer:
+      name: "&e&lBest Player of the Server"
     bedwars:
       name: "&c&lBedWars"
       holo: "&7Coming soon..."
@@ -278,6 +416,13 @@ lobby:
       received_emeralds: "&a+ %amount% emeralds"
 
   profile_gui:
+    friends:
+      name: "&a&lFriends"
+      lore:
+        - "&7View and manage your"
+        - "&7friends list."
+        - ""
+        - "&eClick to open!"
     donate:
       name: "&e&lDonate Menu"
       lore:
@@ -454,9 +599,13 @@ chat:
     no_permission: "&cYou do not have access to Staff Chat."
     usage: "&eUsage: /sc <message>"
   donor:
+    disabled_in_settings: "&cYou have disabled the donor chat in your settings! Enable it to type here."
     no_permission: "&cYou do not have access to Donor Chat. Buy a rank!"
     usage: "&eUsage: /dc <message>"
   msg:
+    staff_bypass: "&7[&bSTAFF&7] &fThis player has PMs disabled, but your message was delivered."
+    disabled_all: "&cThis player has disabled private messages."
+    disabled_friends: "&cThis player only accepts private messages from friends."
     usage: "&eUsage: /msg <player> <message>"
     not_found: "&cPlayer not found!"
     hover_suggest: "&7Click to write more"
@@ -850,3 +999,39 @@ color_gui:
     dark_purple: "Purple"
     light_purple: "Pink"
     white: "White"
+friends:
+  request_cancelled: "&cYou cancelled the friend request to %player%&c."
+  usage: "&cUsage: /friend <add|accept|deny|remove> <player>"
+  player_not_found: "&cPlayer not found or offline."
+  cannot_interact_self: "&cYou cannot send a request to yourself!"
+  already_friends: "&cYou are already friends with this player."
+  not_friends: "&cYou are not friends with this player."
+  request_already_sent: "&cYou have already sent a request to this player."
+  request_sent: "&aFriend request sent to %player%&a."
+  request_received: "&aPlayer %player% &awants to add you as a friend! Type &e/friend accept &ato accept."
+  no_request: "&cYou don't have a pending request from this player."
+  request_accepted: "&aYou accepted the friend request from %player%&a!"
+  request_accepted_sender: "&a%player% &aaccepted your friend request!"
+  request_denied: "&cYou denied the request from %player%&c."
+  request_denied_sender: "&c%player% &cdenied your request."
+  friend_removed: "&cYou removed %player% &cfrom your friends list."
+  friend_removed_target: "&c%player% &cremoved you from their friends list."
+api:
+  skin:
+    usage: "&cUsage: /skin <name>"
+    loading: "&7Downloading texture... Please wait."
+    not_found: "&cSkin with this name was not found or has no premium account!"
+    success: "&aYour skin has been successfully changed to &e%skin%&a!"
+  skin_history_gui:
+    title: "&8Skin History"
+    close: "&cClose"
+    empty:
+      name: "&cNothing found!"
+      lore:
+        - "&7Your skin history is currently empty."
+        - "&7Use &f/skin <name> &7to add"
+        - "&7new skins here."
+    head:
+      lore:
+        - ""
+        - "&a▸ Click to apply this skin!"

@@ -1,14 +1,13 @@
 package net.jetluna.bedwars.state;
 
-import net.jetluna.api.util.ChatUtil;
 import net.jetluna.bedwars.BedWarsPlugin;
-import net.kyori.adventure.title.Title;
+import net.jetluna.bedwars.team.GameTeam;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.time.Duration;
+import java.util.List;
 
 public class StartingState extends GameState {
 
@@ -53,8 +52,6 @@ public class StartingState extends GameState {
     }
 
     private void handleTimerTick() {
-        // Логика каждую секунду
-
         // Визуальный отсчет уровнями (XP bar)
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setLevel(timeLeft);
@@ -62,26 +59,55 @@ public class StartingState extends GameState {
         }
 
         // Сообщения в чат и звуки на важных отметках
-        if (timeLeft <= 5 || timeLeft == 10) {
-            ChatUtil.sendMessage(Bukkit.getConsoleSender(), "<yellow>Игра начнется через <gold>" + timeLeft + " <yellow>сек!");
+        if (timeLeft > 0 && (timeLeft <= 5 || timeLeft == 10)) {
+            Bukkit.broadcastMessage("§eИгра начнется через §6" + timeLeft + " §eсек!");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1f, 1f);
                 // Титул на экран
-                player.showTitle(Title.title(
-                        ChatUtil.parse("<green>" + timeLeft),
-                        ChatUtil.parse("<gray>Приготовься!"),
-                        Title.Times.times(Duration.ZERO, Duration.ofMillis(1200), Duration.ZERO)
-                ));
+                player.sendTitle("§a" + timeLeft, "§7Приготовься!", 0, 25, 0);
             }
         }
 
+        // КОГДА ВРЕМЯ ВЫШЛО
         if (timeLeft <= 0) {
-            // ВРЕМЯ ВЫШЛО -> НАЧИНАЕМ ИГРУ!
-            // plugin.getGameManager().setGameState(new IngameState(plugin));
-            // Пока просто напишем в чат, так как IngameState еще нет
-            Bukkit.broadcast(ChatUtil.parse("<red><bold>ИГРА НАЧАЛАСЬ! (Пока что это конец демки)"));
             timerTask.cancel();
+
+            List<GameTeam> teams = plugin.getTeamManager().getActiveTeams();
+
+            // Защита: если админ забыл просканировать арену
+            if (teams.isEmpty()) {
+                Bukkit.broadcastMessage("§c§lОШИБКА: §7На арене не найдены базы! Админ должен написать /bw scan");
+                plugin.getGameManager().setGameState(new WaitingState(plugin));
+                return;
+            }
+
+            // 1. Раскидываем игроков по командам по очереди
+            int teamIndex = 0;
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                GameTeam team = teams.get(teamIndex % teams.size());
+                team.getPlayers().add(p.getUniqueId());
+                teamIndex++;
+            }
+
+            // 2. ЛОМАЕМ КРОВАТИ ПУСТЫХ КОМАНД
+            for (GameTeam team : teams) {
+                if (team.getPlayers().isEmpty()) { // Если в команде никого нет
+                    team.setHasBed(false); // Отключаем её в логике
+
+                    // Физически удаляем блок кровати с карты
+                    if (team.getBedLocation() != null) {
+                        org.bukkit.block.Block bedBlock = team.getBedLocation().getBlock();
+                        if (bedBlock.getType().name().contains("BED")) {
+                            bedBlock.setType(org.bukkit.Material.AIR);
+                        }
+                    }
+                }
+            }
+
+            // 3. Запускаем саму игру!
+            plugin.getGameManager().setGameState(new IngameState(plugin));
+            return;
         }
 
         timeLeft--;
@@ -91,7 +117,7 @@ public class StartingState extends GameState {
     public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
         int online = Bukkit.getOnlinePlayers().size() - 1;
         if (online < 2) {
-            Bukkit.broadcast(ChatUtil.parse("<red>Недостаточно игроков! Запуск отменен."));
+            Bukkit.broadcastMessage("§cНедостаточно игроков! Запуск отменен.");
             plugin.getGameManager().setGameState(new WaitingState(plugin)); // Возврат в лобби
         }
     }

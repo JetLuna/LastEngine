@@ -14,13 +14,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class LastApi extends JavaPlugin {
     private static LastApi instance;
+    private net.jetluna.api.database.DatabaseManager databaseManager;
 
     @Override
     public void onEnable() {
         instance = this;
+
+        // !!! БАЗА ДАННЫХ ИНИЦИАЛИЗИРУЕТСЯ В ПЕРВУЮ ОЧЕРЕДЬ !!!
+        databaseManager = new net.jetluna.api.database.DatabaseManager("127.0.0.1", "3306", "last_engine", "root", "");
+
         if (!getDataFolder().exists()) getDataFolder().mkdir();
 
         StatsManager.init(this);
+        getServer().getPluginManager().registerEvents(new net.jetluna.api.stats.StatsListener(), this);
         LanguageManager.init(this);
 
         // !!! ВОТ ЭТА СТРОКА САМАЯ ВАЖНАЯ !!!
@@ -49,7 +55,7 @@ public class LastApi extends JavaPlugin {
 
         if (getCommand("eco") != null) getCommand("eco").setExecutor(new net.jetluna.api.stats.EcoCommand());
 
-// --- НОВОЕ: Стримы ---
+        // --- НОВОЕ: Стримы ---
         if (getCommand("stream") != null) getCommand("stream").setExecutor(new net.jetluna.api.stream.StreamCommand());
         if (getCommand("streams") != null) getCommand("streams").setExecutor(new net.jetluna.api.stream.StreamCommand());
 
@@ -77,6 +83,7 @@ public class LastApi extends JavaPlugin {
         net.jetluna.api.gadget.GadgetManager.init(this);
         Bukkit.getPluginManager().registerEvents(new net.jetluna.api.gadget.GadgetsGui(), this);
 
+        net.jetluna.api.cosmetic.CosmeticManager.init(this);
         getServer().getPluginManager().registerEvents(new net.jetluna.api.cosmetic.CosmeticListener(), this);
 
         getServer().getPluginManager().registerEvents(new net.jetluna.api.parkour.ParkourManager(), this);
@@ -84,7 +91,41 @@ public class LastApi extends JavaPlugin {
         if (getCommand("lang") != null) getCommand("lang").setExecutor(new net.jetluna.api.lang.LangCommand());
 
         getServer().getPluginManager().registerEvents(new net.jetluna.api.color.PrefixColorGui(), this);
+
+        net.jetluna.api.util.PlayerSettingsManager.init(this);
+
+        getCommand("friend").setExecutor(new net.jetluna.api.friends.FriendCommand());
+
+        net.jetluna.api.friends.FriendManager.init(this);
+
+        // Инициализация базы данных скинов
+        net.jetluna.api.skin.SkinManager.init(this);
+
+        // Регистрация команд
+        if (getCommand("skin") != null) getCommand("skin").setExecutor(new net.jetluna.api.skin.command.SkinCommand());
+        if (getCommand("skins") != null) getCommand("skins").setExecutor(new net.jetluna.api.skin.command.SkinHistoryCommand());
+
+        // Регистрация меню истории
+        getServer().getPluginManager().registerEvents(new net.jetluna.api.skin.SkinHistoryGui(), this);
+        getServer().getPluginManager().registerEvents(new net.jetluna.api.skin.SkinListener(), this);
+
+        // Инициализация менеджера лучшего игрока
+        net.jetluna.api.bestplayer.BestPlayerManager.init(this);
+
+        // Остальные инициализации...
+        net.jetluna.api.skin.SkinManager.init(this);
+    }
+
+    @Override
+    public void onDisable() {
+        if (databaseManager != null) {
+            databaseManager.close();
+        }
     }
 
     public static LastApi getInstance() { return instance; }
+
+    public net.jetluna.api.database.DatabaseManager getDatabaseManager() {
+        return databaseManager;
+    }
 }

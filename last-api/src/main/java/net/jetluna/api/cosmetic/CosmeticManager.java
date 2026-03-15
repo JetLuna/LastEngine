@@ -2,28 +2,139 @@ package net.jetluna.api.cosmetic;
 
 import net.jetluna.api.LastApi;
 import net.jetluna.api.lang.LanguageManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
-import org.bukkit.persistence.PersistentDataType;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class CosmeticManager {
 
+    // Кэши для оперативной памяти
+    private static final Map<UUID, List<String>> purchasedCache = new HashMap<>();
+    private static final Map<UUID, String> equippedCache = new HashMap<>();
+
+    public static void init(LastApi plugin) {
+        // Создаем отдельную таблицу для косметики
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "CREATE TABLE IF NOT EXISTS player_cosmetics (" +
+                             "uuid VARCHAR(36) PRIMARY KEY, " +
+                             "purchased_banners MEDIUMTEXT, " +
+                             "equipped_banner VARCHAR(64)" +
+                             ");")) {
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadCosmetics(UUID uuid) {
+        List<String> purchased = new ArrayList<>();
+        String equipped = null;
+
+        try (Connection conn = LastApi.getInstance().getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT purchased_banners, equipped_banner FROM player_cosmetics WHERE uuid = ?")) {
+
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String rawPurchased = rs.getString("purchased_banners");
+                if (rawPurchased != null && !rawPurchased.isEmpty()) {
+                    purchased.addAll(Arrays.asList(rawPurchased.split(",")));
+                }
+                equipped = rs.getString("equipped_banner");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        purchasedCache.put(uuid, purchased);
+        equippedCache.put(uuid, equipped);
+    }
+
+    public static void unloadCosmetics(UUID uuid) {
+        purchasedCache.remove(uuid);
+        equippedCache.remove(uuid);
+    }
+
+    private static void saveToDatabase(UUID uuid) {
+        List<String> purchased = purchasedCache.getOrDefault(uuid, new ArrayList<>());
+        String equipped = equippedCache.get(uuid);
+        String joinedPurchased = String.join(",", purchased);
+
+        Bukkit.getScheduler().runTaskAsynchronously(LastApi.getInstance(), () -> {
+            try (Connection conn = LastApi.getInstance().getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "INSERT INTO player_cosmetics (uuid, purchased_banners, equipped_banner) VALUES (?, ?, ?) " +
+                                 "ON DUPLICATE KEY UPDATE purchased_banners = VALUES(purchased_banners), equipped_banner = VALUES(equipped_banner)")) {
+
+                ps.setString(1, uuid.toString());
+                ps.setString(2, joinedPurchased);
+                ps.setString(3, equipped);
+                ps.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public static boolean hasPurchased(Player player, String bannerId) {
         if (player.hasPermission("lastengine.cosmetic.all")) return true;
-        NamespacedKey key = new NamespacedKey(LastApi.getInstance(), "banner_" + bannerId);
-        return player.getPersistentDataContainer().has(key, PersistentDataType.BYTE);
+        return purchasedCache.getOrDefault(player.getUniqueId(), new ArrayList<>()).contains(bannerId);
     }
 
     public static void setPurchased(Player player, String bannerId) {
-        NamespacedKey key = new NamespacedKey(LastApi.getInstance(), "banner_" + bannerId);
-        player.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);
+        UUID uuid = player.getUniqueId();
+        List<String> purchased = purchasedCache.getOrDefault(uuid, new ArrayList<>());
+        if (!purchased.contains(bannerId)) {
+            purchased.add(bannerId);
+            purchasedCache.put(uuid, purchased);
+            saveToDatabase(uuid);
+        }
+    }
+
+    public static String getEquipped(Player player) {
+        return equippedCache.get(player.getUniqueId());
+    }
+
+    public static void setEquipped(Player player, String bannerId) {
+        UUID uuid = player.getUniqueId();
+
+        if (bannerId == null || bannerId.isEmpty()) {
+            equippedCache.remove(uuid);
+            removeCosmetic(player);
+        } else {
+            equippedCache.put(uuid, bannerId);
+            player.getInventory().setHelmet(getBannerById(player, bannerId));
+        }
+
+        saveToDatabase(uuid);
+    }
+
+    public static ItemStack getBannerById(Player player, String id) {
+        if (id == null) return null;
+        switch (id.toLowerCase()) {
+            case "standard": return getLastEngineBanner(player);
+            case "pirate": return getPirateBanner(player);
+            case "royal": return getRoyalBanner(player);
+            case "ukraine": return getUkraineBanner(player);
+            case "creeper": return getCreeperBanner(player);
+            case "crusader": return getCrusaderBanner(player);
+            default: return null;
+        }
     }
 
     // --- БЕСПЛАТНЫЕ БАННЕРЫ ---

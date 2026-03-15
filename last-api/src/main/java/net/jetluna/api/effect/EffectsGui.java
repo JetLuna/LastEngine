@@ -42,11 +42,11 @@ public class EffectsGui implements Listener {
 
             ParticleEffect effect = effects[i];
             boolean isActive = stats.getActiveEffect().equals(effect.name());
-            boolean isOwned = player.isOp() || isActive;
+
+            // ИСПРАВЛЕНИЕ: Проверяем реальное наличие в списке купленных
+            boolean isOwned = player.isOp() || stats.getUnlockedEffects().contains(effect.name());
 
             ItemBuilder builder = new ItemBuilder(effect.getIcon());
-
-            // Получаем локализованное название эффекта (например, "Сердца")
             String effectName = toLegacy(LanguageManager.getString(player, "effects.list." + effect.name().toLowerCase()));
 
             if (isActive) {
@@ -80,7 +80,6 @@ public class EffectsGui implements Listener {
     public void onClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
 
-        // Сравниваем очищенный от цветов заголовок, чтобы локализация не сломала проверки
         String expectedTitle = toLegacy(LanguageManager.getString(player, "effects.gui.title"));
         if (!ChatColor.stripColor(event.getView().getTitle()).equals(ChatColor.stripColor(expectedTitle))) return;
 
@@ -101,6 +100,8 @@ public class EffectsGui implements Listener {
 
         if (slot == 48) {
             stats.setActiveEffect("");
+            StatsManager.saveStats(player); // ИСПРАВЛЕНИЕ: Сохраняем отключение
+
             String msg = toLegacy(LanguageManager.getString(player, "effects.messages.disabled"));
             ChatUtil.sendMessage(player, msg);
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 1f);
@@ -111,19 +112,25 @@ public class EffectsGui implements Listener {
 
         for (ParticleEffect effect : ParticleEffect.values()) {
             if (item.getType() == effect.getIcon()) {
-                boolean isActive = stats.getActiveEffect().equals(effect.name());
-                boolean isOwned = player.isOp() || isActive;
+                boolean isOwned = player.isOp() || stats.getUnlockedEffects().contains(effect.name());
                 String effectName = toLegacy(LanguageManager.getString(player, "effects.list." + effect.name().toLowerCase()));
 
                 if (isOwned) {
                     stats.setActiveEffect(effect.name());
+                    StatsManager.saveStats(player); // ИСПРАВЛЕНИЕ: Сохраняем переключение
+
                     String msg = toLegacy(LanguageManager.getString(player, "effects.messages.selected")).replace("%effect%", effectName);
                     ChatUtil.sendMessage(player, msg);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
                 } else {
                     if (stats.getCoins() >= effect.getPrice()) {
                         stats.setCoins(stats.getCoins() - effect.getPrice());
+
+                        // ИСПРАВЛЕНИЕ: Добавляем в список купленных и сохраняем!
+                        stats.addUnlockedEffect(effect.name());
                         stats.setActiveEffect(effect.name());
+                        StatsManager.saveStats(player);
+
                         String msg = toLegacy(LanguageManager.getString(player, "effects.messages.purchased")).replace("%effect%", effectName);
                         ChatUtil.sendMessage(player, msg);
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
@@ -140,8 +147,7 @@ public class EffectsGui implements Listener {
         }
     }
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ---
-
+    // Вспомогательные методы
     private static List<String> getLegacyList(Player player, String key) {
         List<String> list = LanguageManager.getList(player, key);
         List<String> legacyList = new ArrayList<>();

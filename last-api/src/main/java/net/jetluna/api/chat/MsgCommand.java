@@ -2,9 +2,12 @@ package net.jetluna.api.chat;
 
 import net.jetluna.api.lang.LanguageManager;
 import net.jetluna.api.rank.RankManager;
+import net.jetluna.api.rank.Rank;
 import net.jetluna.api.stats.PlayerStats;
 import net.jetluna.api.stats.StatsManager;
 import net.jetluna.api.util.NameFormatUtil;
+import net.jetluna.api.util.PlayerSettingsManager;
+import net.jetluna.api.friends.FriendManager;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -69,10 +72,35 @@ public class MsgCommand implements CommandExecutor {
     }
 
     private void sendPrivateMessage(Player sender, Player target, String message) {
+        // --- ПРОВЕРКА НАСТРОЕК ЛС ИГРОКА ---
+        Rank senderRank = RankManager.getRank(sender);
+        boolean isStaff = senderRank.getWeight() >= 6; // Персонал игнорирует настройки
+
+        if (sender != target) { // Не блокируем сообщения самому себе
+            int pmSetting = PlayerSettingsManager.getPMSetting(target.getUniqueId());
+            boolean isFriend = FriendManager.isFriend(target.getUniqueId(), sender.getUniqueId());
+
+            // Если ЛС закрыты полностью (2) ИЛИ (только для друзей (1), но отправитель не друг)
+            if (pmSetting == 2 || (pmSetting == 1 && !isFriend)) {
+                if (isStaff) {
+                    // Уведомляем персонал, что они обошли блокировку
+                    LanguageManager.sendMessage(sender, "chat.msg.staff_bypass");
+                } else {
+                    // Обычных игроков разворачиваем
+                    if (pmSetting == 2) {
+                        LanguageManager.sendMessage(sender, "chat.msg.disabled_all");
+                    } else {
+                        LanguageManager.sendMessage(sender, "chat.msg.disabled_friends");
+                    }
+                    return;
+                }
+            }
+        }
+        // -----------------------------------
+
         replies.put(sender.getUniqueId(), target.getUniqueId());
         replies.put(target.getUniqueId(), sender.getUniqueId());
 
-        // --- БЕРЕМ КРАСИВЫЕ НИКИ ИЗ НАШЕГО УТИЛИТА ---
         String senderName = NameFormatUtil.getFormattedName(sender, RankManager.getRank(sender));
         String targetName = NameFormatUtil.getFormattedName(target, RankManager.getRank(target));
 
@@ -82,7 +110,6 @@ public class MsgCommand implements CommandExecutor {
         PlayerStats targetStats = StatsManager.getStats(target);
         String targetSuffix = (targetStats != null && targetStats.getSuffix() != null) ? targetStats.getSuffix().replace("&", "§") : "";
 
-        // --- Формат для ОТПРАВИТЕЛЯ (Я -> Игрок) ---
         String senderMe = LanguageManager.getString(sender, "chat.msg.me");
         String senderHover = LanguageManager.getString(sender, "chat.msg.hover_suggest");
 
@@ -93,7 +120,6 @@ public class MsgCommand implements CommandExecutor {
             c.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(ChatColor.translateAlternateColorCodes('&', senderHover))));
         }
 
-        // --- Формат для ПОЛУЧАТЕЛЯ (Игрок -> Я) ---
         String targetMe = LanguageManager.getString(target, "chat.msg.me");
         String targetHover = LanguageManager.getString(target, "chat.msg.hover_reply");
 

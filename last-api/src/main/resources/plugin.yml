@@ -2,6 +2,12 @@ name: LastApi
 version: 1.0.0
 main: net.jetluna.api.LastApi
 api-version: 1.21
+database:
+  host: "127.0.0.1"
+  port: "3306"
+  name: "last_engine"
+  user: "root"
+  password: ""
 commands:
   setrank:
     description: Выдать ранг игроку
@@ -62,3 +68,13 @@ commands:
   reports:
     description: Просмотр активных жалоб
     usage: /reports
+  friend:
+    description: Система друзей
+    aliases: [f, friends]
+    usage: /friend <add|accept|deny|remove> <ник>
+  skin:
+    description: Установить скин лицензионного игрока
+    usage: /skin <ник>
+  skins:
+    description: Меню истории ваших скинов
+    aliases: [ skinhistory ]

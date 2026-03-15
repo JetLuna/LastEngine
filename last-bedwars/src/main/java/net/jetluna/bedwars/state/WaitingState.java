@@ -41,7 +41,7 @@ public class WaitingState extends GameState {
         int online = org.bukkit.Bukkit.getOnlinePlayers().size();
         int max = 8; // Допустим макс 8
         org.bukkit.Bukkit.broadcast(
-                net.jetluna.api.util.ChatUtil.parse("<gray>Игрок <green>" + event.getPlayer().getName() + " <gray>подключился! <yellow>(" + online + "/" + max + ")")
+                net.jetluna.api.util.ChatUtil.parse("§7Игрок §a" + event.getPlayer().getName() + " §7подключился! §e(" + online + "/" + max + ")")
         );
 
         // --- ВАЖНО: ПРОВЕРКА ЗАПУСКА ---
