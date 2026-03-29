@@ -44,7 +44,35 @@ public class BedWarsCommand implements CommandExecutor {
             player.sendMessage("§aСканирование завершено! Проверь консоль для деталей.");
             return true;
         }
+        // Установка лобби ожидания
+        if (args[0].equalsIgnoreCase("setspawn")) {
+            if (!player.hasPermission("bedwars.admin")) {
+                player.sendMessage("§cУ вас нет прав!");
+                return true;
+            }
 
+            plugin.getConfig().set("locations.waiting-lobby", player.getLocation());
+            plugin.saveConfig();
+
+            player.sendMessage("§a[BedWars] Точка лобби ожидания успешно установлена!");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+            return true;
+        }
+
+        // Установка лобби победителей
+        if (args[0].equalsIgnoreCase("setwinlobby")) {
+            if (!player.hasPermission("bedwars.admin")) {
+                player.sendMessage("§cУ вас нет прав!");
+                return true;
+            }
+
+            plugin.getConfig().set("locations.win-lobby", player.getLocation());
+            plugin.saveConfig();
+
+            player.sendMessage("§a[BedWars] Точка лобби Победителей успешно установлена!");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+            return true;
+        }
         return true;
     }
 }

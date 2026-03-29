@@ -38,7 +38,7 @@ public class ShopGui implements Listener {
         addProduct(ShopCategory.BLOCKS, 20, new DefaultShopProduct(new ItemStack(Material.OAK_PLANKS, 16), new ItemStack(Material.OAK_PLANKS, 16), Resource.IRON, 16));
         addProduct(ShopCategory.BLOCKS, 21, new DefaultShopProduct(new ItemStack(Material.END_STONE, 12), new ItemStack(Material.END_STONE, 12), Resource.IRON, 24));
 
-        ItemStack blastGlass = new ItemBuilder(Material.TINTED_GLASS).setName("§bВзрывоустойчивое стекло").build();
+        ItemStack blastGlass = new ItemBuilder(Material.TINTED_GLASS).setName("§bСтекло").build();
         blastGlass.setAmount(8);
         addProduct(ShopCategory.BLOCKS, 22, new DefaultShopProduct(blastGlass, blastGlass, Resource.IRON, 12));
 
@@ -47,10 +47,7 @@ public class ShopGui implements Listener {
         addProduct(ShopCategory.BLOCKS, 25, new DefaultShopProduct(new ItemStack(Material.COBWEB, 8), new ItemStack(Material.COBWEB, 8), Resource.IRON, 12));
 
 // ================= ОРУЖИЕ =================
-        addProduct(ShopCategory.WEAPONS, 19, new DefaultShopProduct(createUnbreakable(Material.STONE_SWORD, "§7Каменный меч"), createUnbreakable(Material.STONE_SWORD, "§7Каменный меч"), Resource.IRON, 10));
-        addProduct(ShopCategory.WEAPONS, 20, new DefaultShopProduct(createUnbreakable(Material.IRON_SWORD, "§fЖелезный меч"), createUnbreakable(Material.IRON_SWORD, "§fЖелезный меч"), Resource.DIAMOND, 7));
-        addProduct(ShopCategory.WEAPONS, 21, new DefaultShopProduct(createUnbreakable(Material.DIAMOND_SWORD, "§bАлмазный меч"), createUnbreakable(Material.DIAMOND_SWORD, "§bАлмазный меч"), Resource.OPAL, 4));
-        addProduct(ShopCategory.WEAPONS, 22, new DefaultShopProduct(createUnbreakable(Material.NETHERITE_SWORD, "§5Незеритовый меч"), createUnbreakable(Material.NETHERITE_SWORD, "§5Незеритовый меч"), Resource.OPAL, 10));
+        addProduct(ShopCategory.WEAPONS, 19, new WeaponShopProduct());
 
         addProduct(ShopCategory.WEAPONS, 23, new DefaultShopProduct(createUnbreakable(Material.MACE, "§6Булава"), createUnbreakable(Material.MACE, "§6Булава"), Resource.OPAL, 15));
 
@@ -62,28 +59,27 @@ public class ShopGui implements Listener {
         addProduct(ShopCategory.ARMOR, 19, new ArmorShopProduct(plugin, ArmorType.IRON));
         addProduct(ShopCategory.ARMOR, 20, new ArmorShopProduct(plugin, ArmorType.DIAMOND));
         addProduct(ShopCategory.ARMOR, 21, new ArmorShopProduct(plugin, ArmorType.NETHERITE));
-
         addProduct(ShopCategory.ARMOR, 23, new DefaultShopProduct(new ItemBuilder(Material.SHIELD).setName("§eЩит").build(), new ItemBuilder(Material.SHIELD).setName("§eЩит").build(), Resource.IRON, 20));
-        addProduct(ShopCategory.ARMOR, 24, new DefaultShopProduct(new ItemBuilder(Material.TOTEM_OF_UNDYING).setName("§6Тотем бессмертия").build(), new ItemBuilder(Material.TOTEM_OF_UNDYING).setName("§6Тотем бессмертия").build(), Resource.OPAL, 5));
 
         // ================= ИНСТРУМЕНТЫ (Пока статические, потом сделаем апгрейд) =================
-        addProduct(ShopCategory.TOOLS, 19, new DefaultShopProduct(createUnbreakable(Material.STONE_PICKAXE, "§7Каменная кирка"), createUnbreakable(Material.STONE_PICKAXE, "§7Каменная кирка"), Resource.IRON, 10));
-        addProduct(ShopCategory.TOOLS, 20, new DefaultShopProduct(createUnbreakable(Material.STONE_AXE, "§7Каменный топор"), createUnbreakable(Material.STONE_AXE, "§7Каменный топор"), Resource.IRON, 10));
+// ================= ИНСТРУМЕНТЫ =================
+        addProduct(ShopCategory.TOOLS, 19, new ToolShopProduct(ToolShopProduct.ToolType.PICKAXE));
+        addProduct(ShopCategory.TOOLS, 20, new ToolShopProduct(ToolShopProduct.ToolType.AXE));
         addProduct(ShopCategory.TOOLS, 21, new DefaultShopProduct(createUnbreakable(Material.SHEARS, "§fНожницы"), createUnbreakable(Material.SHEARS, "§fНожницы"), Resource.IRON, 20));
 
         // ================= ЛУКИ =================
         addProduct(ShopCategory.BOWS, 19, new DefaultShopProduct(createUnbreakable(Material.BOW, "§eЛук"), createUnbreakable(Material.BOW, "§eЛук"), Resource.DIAMOND, 12));
 
-        ItemStack bow1 = createUnbreakable(Material.BOW, "§eМощный Лук I"); bow1.addUnsafeEnchantment(Enchantment.POWER, 1);
+        ItemStack bow1 = createUnbreakable(Material.BOW, "§eЛук I"); bow1.addUnsafeEnchantment(Enchantment.POWER, 1);
         addProduct(ShopCategory.BOWS, 20, new DefaultShopProduct(bow1, bow1, Resource.DIAMOND, 24));
 
-        ItemStack bow2 = createUnbreakable(Material.BOW, "§6Мощный Лук II"); bow2.addUnsafeEnchantment(Enchantment.POWER, 2);
+        ItemStack bow2 = createUnbreakable(Material.BOW, "§6ЛукII"); bow2.addUnsafeEnchantment(Enchantment.POWER, 2);
         addProduct(ShopCategory.BOWS, 21, new DefaultShopProduct(bow2, bow2, Resource.OPAL, 5));
 
-        ItemStack bow3 = createUnbreakable(Material.BOW, "§cМощный Лук III"); bow3.addUnsafeEnchantment(Enchantment.POWER, 3);
+        ItemStack bow3 = createUnbreakable(Material.BOW, "§cЛук III"); bow3.addUnsafeEnchantment(Enchantment.POWER, 3);
         addProduct(ShopCategory.BOWS, 22, new DefaultShopProduct(bow3, bow3, Resource.OPAL, 10));
 
-        ItemStack crossbow = createUnbreakable(Material.CROSSBOW, "§dСкорострельный арбалет");
+        ItemStack crossbow = createUnbreakable(Material.CROSSBOW, "§dАрбалет");
         crossbow.addUnsafeEnchantment(Enchantment.QUICK_CHARGE, 3);
         crossbow.addUnsafeEnchantment(Enchantment.MULTISHOT, 1);
         addProduct(ShopCategory.BOWS, 23, new DefaultShopProduct(crossbow, crossbow, Resource.OPAL, 6));

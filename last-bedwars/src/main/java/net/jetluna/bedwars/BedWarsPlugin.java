@@ -72,6 +72,7 @@ public class BedWarsPlugin extends JavaPlugin {
         this.scoreboardManager = new ScoreboardManager(this);
 
         this.economyManager = new EconomyManager();
+        getServer().getPluginManager().registerEvents(new net.jetluna.bedwars.shop.UpgradeGui(this), this);
     }
 
     public static BedWarsPlugin getInstance() { return instance; }

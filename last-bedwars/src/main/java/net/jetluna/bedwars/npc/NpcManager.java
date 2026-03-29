@@ -26,9 +26,22 @@ public class NpcManager {
         npc.data().set("silent", true);
 
         npc.spawn(location);
+        npc.spawn(location);
+
+        // --- ГЛУШИМ ЖИТЕЛЯ НАМЕРТВО ---
+        if (npc.getEntity() != null) {
+            npc.getEntity().setSilent(true);
+        }
         npc.setProtected(true); // Делаем бессмертным
 
-        npc.data().setPersistent("nameplate-visible", true);
+        // Отключаем забагованную ванильную табличку
+        npc.data().setPersistent("nameplate-visible", false);
+
+        // Создаем нормальную парящую голограмму
+        net.citizensnpcs.trait.HologramTrait holo = npc.getOrAddTrait(net.citizensnpcs.trait.HologramTrait.class);
+        holo.clear();
+        holo.addLine("§6§lТорговец");
+        holo.addLine("§eНажмите ПКМ"); // Бонус: теперь можно делать 2 строчки!
         npc.data().setPersistent("bedwars_npc_type", "shop");
 
         spawnedNpcs.add(npc);
@@ -42,8 +55,19 @@ public class NpcManager {
         npc.data().set("silent", true);
 
         npc.spawn(location);
+        npc.spawn(location);
+
+        // --- ГЛУШИМ ЖИТЕЛЯ НАМЕРТВО ---
+        if (npc.getEntity() != null) {
+            npc.getEntity().setSilent(true);
+        }
         npc.setProtected(true);
-        npc.data().setPersistent("nameplate-visible", true);
+        npc.data().setPersistent("nameplate-visible", false);
+
+        net.citizensnpcs.trait.HologramTrait holo = npc.getOrAddTrait(net.citizensnpcs.trait.HologramTrait.class);
+        holo.clear();
+        holo.addLine("§b§lУлучшения");
+        holo.addLine("§eНажмите ПКМ");
 
         // Метка для улучшений
         npc.data().setPersistent("bedwars_npc_type", "upgrade");

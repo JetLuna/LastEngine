@@ -36,4 +36,8 @@ public class GameManager {
             plugin.getLogger().info("Игроков достаточно! Скоро начнется отсчет.");
         }
     }
+
+    public net.jetluna.bedwars.state.GameState getGameState() {
+        return this.currentState;
+    }
 }

@@ -71,4 +71,32 @@ public class GameTeam {
     public void setUpgradeLevel(String upgradeName, int level) {
         upgrades.put(upgradeName.toUpperCase(), level);
     }
+
+    // === СИСТЕМА ПРОКАЧЕК (УЛУЧШЕНИЯ КОМАНДЫ) ===
+    private boolean hasSharpness = false;
+    private int protectionLevel = 0; // 0, 1, 2, 3, 4
+    private int hasteLevel = 0; // 0, 1, 2
+    private boolean hasHealPool = false;
+
+    private int efficiencyLevel = 0;
+    private final java.util.List<String> traps = new java.util.ArrayList<>();
+
+    // Геттеры и сеттеры для прокачек
+    public boolean hasSharpness() { return hasSharpness; }
+    public void setHasSharpness(boolean hasSharpness) { this.hasSharpness = hasSharpness; }
+
+    public int getProtectionLevel() { return protectionLevel; }
+    public void setProtectionLevel(int protectionLevel) { this.protectionLevel = protectionLevel; }
+
+    public int getHasteLevel() { return hasteLevel; }
+    public void setHasteLevel(int hasteLevel) { this.hasteLevel = hasteLevel; }
+
+    public boolean hasHealPool() { return hasHealPool; }
+    public void setHasHealPool(boolean hasHealPool) { this.hasHealPool = hasHealPool; }
+
+    public java.util.List<String> getTraps() { return traps; }
+    public void addTrap(String trapType) { this.traps.add(trapType); }
+
+    public int getEfficiencyLevel() { return efficiencyLevel; }
+    public void setEfficiencyLevel(int efficiencyLevel) { this.efficiencyLevel = efficiencyLevel; }
 }

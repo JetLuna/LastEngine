@@ -24,8 +24,8 @@ public class NpcListener implements Listener {
             ShopGui.open(player, ShopCategory.BLOCKS);
 
         } else if (type.equals("upgrade")) {
-            // Тут позже вызовем UpgradeGui.open(player);
-            ChatUtil.sendMessage(player, "§bОткрываем прокачку базы... (в разработке)");
+            // Открываем наше новое меню прокачки!
+            net.jetluna.bedwars.shop.UpgradeGui.open(player);
         }
     }
 }

@@ -1,6 +1,5 @@
 package net.jetluna.bedwars.manager;
 
-import net.jetluna.bedwars.manager.EconomyManager;
 import net.jetluna.bedwars.BedWarsPlugin;
 import net.jetluna.bedwars.team.GameTeam;
 import org.bukkit.Bukkit;
@@ -18,6 +17,17 @@ public class DeathManager {
 
     private final BedWarsPlugin plugin;
 
+    // --- ХРАНИЛИЩЕ ЗАРЯДОВ ВАМПИРИЗМА ---
+    private final java.util.Map<java.util.UUID, Integer> vampirismCharges = new java.util.HashMap<>();
+
+    public void addVampirismCharge(Player player) {
+        vampirismCharges.put(player.getUniqueId(), getVampirismCharges(player) + 1);
+    }
+
+    public int getVampirismCharges(Player player) {
+        return vampirismCharges.getOrDefault(player.getUniqueId(), 0);
+    }
+
     public DeathManager(BedWarsPlugin plugin) {
         this.plugin = plugin;
     }
@@ -26,34 +36,45 @@ public class DeathManager {
         GameTeam team = plugin.getTeamManager().getTeam(player);
         if (team == null) return;
 
-        // --- ОЧИСТКА И ПЕРЕДАЧА ЛУТА ---
+        // --- 1. ПЕРЕДАЕМ РЕСУРСЫ УБИЙЦЕ ---
         transferResources(player, killer);
 
+        // --- 2. СОХРАНЯЕМ И ПОНИЖАЕМ УРОВЕНЬ ОРУЖИЯ ---
+        plugin.getEquipmentManager().saveAndDowngradeEquipment(player);
+
+        // --- 3. ОЧИЩАЕМ ИНВЕНТАРЬ (чтобы старые блоки и мечи исчезли) ---
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
-        player.setFallDistance(0); // Чтобы не разбился при телепорте
-        player.setFireTicks(0);    // Тушим огонь
-        player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType())); // Снимаем эффекты зелий
-        // -------------------------------
 
-        // 1. Анонс в чат и Экономика
+        player.setFallDistance(0);
+        player.setFireTicks(0);
+        player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
+
+        // 4. Анонс в чат и Экономика
         if (killer != null) {
             GameTeam killerTeam = plugin.getTeamManager().getTeam(killer);
             String kColor = killerTeam != null ? killerTeam.getColor().getChatColor().toString() : "§7";
 
             if (team.hasBed()) {
-                // Обычное убийство
                 Bukkit.broadcastMessage(team.getColor().getChatColor() + player.getName() + " §7был убит " + kColor + killer.getName());
                 plugin.getEconomyManager().addPoints(killer, 1);
                 killer.sendMessage("§b+ 1 поинт §7за убийство!");
             } else {
-                // ФИНАЛЬНОЕ УБИЙСТВО
                 Bukkit.broadcastMessage(team.getColor().getChatColor() + player.getName() + " §7был §c§lОКОНЧАТЕЛЬНО §7убит " + kColor + killer.getName());
                 plugin.getEconomyManager().addPoints(killer, 5);
                 killer.sendMessage("§b+ 5 поинтов §7за §cфинальное убийство!");
             }
+
+            // --- ВАМПИРИЗМ ---
+            int vampCharges = getVampirismCharges(killer);
+            if (vampCharges > 0) {
+                vampirismCharges.put(killer.getUniqueId(), vampCharges - 1);
+                double newHealth = Math.min(20.0, killer.getHealth() + 6.0);
+                killer.setHealth(newHealth);
+                killer.sendMessage("§c❤ Вампиризм восстановил вам здоровье! (Осталось зарядов: " + (vampCharges - 1) + ")");
+                killer.playSound(killer.getLocation(), Sound.ENTITY_WITCH_DRINK, 1f, 1f);
+            }
         } else {
-            // Если игрок умер сам (например, упал)
             if (team.hasBed()) {
                 Bukkit.broadcastMessage(team.getColor().getChatColor() + player.getName() + " §7погиб.");
             } else {
@@ -61,30 +82,27 @@ public class DeathManager {
             }
         }
 
-        // 2. Логика возрождения или вылета
+        // 5. Логика возрождения или вылета
         if (team.hasBed()) {
             startRespawn(player, team);
         } else {
-            // ФИНАЛЬНАЯ СМЕРТЬ
             player.setGameMode(GameMode.SPECTATOR);
             plugin.getTeamManager().removePlayerFromTeam(player);
 
             player.sendTitle("§c§lВЫ ПОГИБЛИ", "§7Ваша кровать была разрушена!", 10, 60, 10);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
 
-            checkWinCondition(); // Проверяем, не закончилась ли игра
+            checkWinCondition();
         }
     }
 
-    // Метод для передачи Железа, Алмазов и Опалов убийце
+    // ТВОЙ МЕТОД: Передача Железа, Алмазов и Опалов убийце
     private void transferResources(Player victim, Player killer) {
         List<ItemStack> drops = new ArrayList<>();
 
-        // Ищем ресурсы в инвентаре жертвы
         for (ItemStack item : victim.getInventory().getContents()) {
             if (item == null) continue;
             Material type = item.getType();
-            // ВАЖНО: Заменили EMERALD на PRISMARINE_CRYSTALS
             if (type == Material.IRON_INGOT || type == Material.DIAMOND || type == Material.PRISMARINE_CRYSTALS) {
                 drops.add(item.clone());
             }
@@ -92,22 +110,19 @@ public class DeathManager {
 
         if (drops.isEmpty()) return;
 
-        // Если есть убийца - отдаем ему
         if (killer != null) {
             for (ItemStack drop : drops) {
-                // Если инвентарь убийцы полон, ресурсы выпадут рядом с ним
                 killer.getInventory().addItem(drop).values().forEach(leftover ->
                         killer.getWorld().dropItem(killer.getLocation(), leftover)
                 );
             }
             killer.playSound(killer.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1f, 1f);
         }
-        // Если убился сам (упал в бездну), ресы просто испаряются
     }
 
     private void startRespawn(Player player, GameTeam team) {
         player.setGameMode(GameMode.SPECTATOR);
-        player.teleport(team.getSpawnLocation().clone().add(0, 10, 0)); // Отправляем летать над базой
+        player.teleport(team.getSpawnLocation().clone().add(0, 10, 0));
 
         new BukkitRunnable() {
             int time = 5;
@@ -125,7 +140,11 @@ public class DeathManager {
                     player.setHealth(20.0);
                     player.setFoodLevel(20);
 
-                    // Возвращаем броню и деревянный меч
+                    // --- ИСПРАВЛЕНИЕ МЕЧЕЙ И ИНСТРУМЕНТОВ ---
+                    // 1. Сначала выдаем меч и инструменты нужного уровня!
+                    plugin.getEquipmentManager().giveRespawnEquipment(player);
+
+                    // 2. Затем надеваем броню и чаруем мечи (Sharpness)
                     plugin.getEquipmentManager().updateEquipment(player);
 
                     player.sendTitle("§a§lВОЗРОЖДЕНИЕ", "", 0, 20, 0);
@@ -143,7 +162,6 @@ public class DeathManager {
 
     public void checkWinCondition() {
         if (plugin.getTeamManager().getAliveTeams().size() <= 1) {
-            // ОСТАЛАСЬ ОДНА КОМАНДА!
             GameTeam winner = plugin.getTeamManager().getAliveTeams().isEmpty() ? null : plugin.getTeamManager().getAliveTeams().get(0);
 
             Bukkit.broadcastMessage("§6§lИГРА ОКОНЧЕНА!");
@@ -151,7 +169,6 @@ public class DeathManager {
                 Bukkit.broadcastMessage("§eПобедила " + winner.getColor().getChatColor() + winner.getColor().getName() + " §eкоманда!");
             }
 
-            // ЗАПУСКАЕМ РЕСТАРТ АРЕНЫ:
             plugin.getGameManager().setGameState(new net.jetluna.bedwars.state.EndingState(plugin));
         }
     }

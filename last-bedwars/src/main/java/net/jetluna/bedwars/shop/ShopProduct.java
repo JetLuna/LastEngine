@@ -34,7 +34,7 @@ public abstract class ShopProduct {
 
             // Добавляем пустую строку и цену
             lore.add(Component.empty());
-            lore.add(ChatUtil.parse("§7>Цена: " + currency.getDisplayName() + " §ex" + price));
+            lore.add(ChatUtil.parse("§7Цена: " + currency.getDisplayName() + " §ex" + price));
             lore.add(ChatUtil.parse("§eНажмите, чтобы купить!"));
 
             meta.lore(lore);
