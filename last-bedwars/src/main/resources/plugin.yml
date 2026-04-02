@@ -2,7 +2,7 @@ name: LastBedWars
 version: 1.0.0
 main: net.jetluna.bedwars.BedWarsPlugin
 api-version: '1.21'
-depend: [LastApi, Citizens]
+depend: [LastApi, Citizens, DecentHolograms]
 
 commands:
   bw:

@@ -1,5 +1,6 @@
 package net.jetluna.bedwars;
 
+import net.jetluna.bedwars.listeners.HologramClickListener;
 import net.jetluna.bedwars.manager.*;
 import net.jetluna.bedwars.npc.NpcListener;
 import net.jetluna.bedwars.npc.NpcManager;
@@ -8,13 +9,14 @@ import net.jetluna.bedwars.shop.ShopGui;
 import net.jetluna.bedwars.state.WaitingState;
 import net.jetluna.bedwars.team.TeamManager;
 import net.jetluna.bedwars.util.BedWarsMode;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BedWarsPlugin extends JavaPlugin {
 
     private static BedWarsPlugin instance;
     private BedWarsMode bedWarsMode;
-
+    private GameStats gameStats;
     private GameManager gameManager;
     private TeamManager teamManager;
     private GeneratorManager generatorManager;
@@ -46,7 +48,13 @@ public class BedWarsPlugin extends JavaPlugin {
         this.blockManager = new BlockManager();
         this.deathManager = new DeathManager(this);
         this.npcManager = new NpcManager(this);
+
+        // Очищаем NPC через 1 тик — когда Citizens уже загрузил всё из saves.yml
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            npcManager.clearGlobalNpcs();
+        }, 1L);
         this.gameManager = new GameManager(this);
+        this.gameStats = new GameStats();
 
         // 2. Регистрация магазинов и слушателей
         ShopGui.init();
@@ -73,6 +81,8 @@ public class BedWarsPlugin extends JavaPlugin {
 
         this.economyManager = new EconomyManager();
         getServer().getPluginManager().registerEvents(new net.jetluna.bedwars.shop.UpgradeGui(this), this);
+
+        Bukkit.getPluginManager().registerEvents(new HologramClickListener(), this);
     }
 
     public static BedWarsPlugin getInstance() { return instance; }
@@ -88,4 +98,10 @@ public class BedWarsPlugin extends JavaPlugin {
     public ArenaScanner getArenaScanner() { return arenaScanner; }
     public ScoreboardManager getScoreboardManager() { return scoreboardManager; }
     public EconomyManager getEconomyManager() { return economyManager; }
+    public GameStats getGameStats() {
+        if (this.gameStats == null) {
+            this.gameStats = new GameStats();
+        }
+        return this.gameStats;
+    }
 }

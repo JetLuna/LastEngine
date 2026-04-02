@@ -220,8 +220,10 @@ public class IngameState extends GameState {
                 plugin.getEconomyManager().addPoints(player, 3);
                 player.sendMessage("§b+ 3 поинта §7за разрушение кровати!");
 
-                // (И не забудь оставить добавление в стату скорборда)
+                // Статистика скорборда (сессионная)
                 plugin.getScoreboardManager().addBrokenBed(player);
+                // --- СТАТИСТИКА ИГРЫ: Топ сломанных кроватей ---
+                plugin.getGameStats().addBedBroken(player.getUniqueId());
 
                 // Эпичный анонс
                 Bukkit.broadcast(ChatUtil.parse(""));

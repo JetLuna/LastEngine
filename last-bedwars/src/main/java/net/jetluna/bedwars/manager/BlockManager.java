@@ -8,28 +8,26 @@ import java.util.Set;
 
 public class BlockManager {
 
-    // Храним локации (координаты), а не сами изменчивые блоки!
-    // HashSet работает в 10 раз быстрее обычного списка при поиске.
-    private final Set<Location> placedBlocks = new HashSet<>();
+    private final Set<String> placedBlocks = new HashSet<>();
+
+    // Превращаем координаты в строку — yaw/pitch не участвуют
+    private String key(Block block) {
+        return block.getWorld().getName() + ":" + block.getX() + ":" + block.getY() + ":" + block.getZ();
+    }
 
     public void addBlock(Block block) {
-        if (block != null) {
-            placedBlocks.add(block.getLocation());
-        }
+        if (block != null) placedBlocks.add(key(block));
     }
 
     public void removeBlock(Block block) {
-        if (block != null) {
-            placedBlocks.remove(block.getLocation());
-        }
+        if (block != null) placedBlocks.remove(key(block));
     }
 
     public boolean isPlayerPlaced(Block block) {
         if (block == null) return false;
-        return placedBlocks.contains(block.getLocation());
+        return placedBlocks.contains(key(block));
     }
 
-    // Очищаем список при перезапуске (хотя у нас и так сервер рестартится, но для порядка нужно)
     public void clearBlocks() {
         placedBlocks.clear();
     }

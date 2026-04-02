@@ -29,6 +29,39 @@ public class BedWarsCommand implements CommandExecutor {
             return true;
         }
 
+        // Выдача поинтов: /bw givepoints <игрок> <количество>
+        if (args[0].equalsIgnoreCase("givepoints")) {
+            if (!player.hasPermission("bedwars.admin")) {
+                player.sendMessage("§cУ вас нет прав!");
+                return true;
+            }
+
+            if (args.length < 3) {
+                player.sendMessage("§eИспользование: /bw givepoints <игрок> <количество>");
+                return true;
+            }
+
+            Player target = org.bukkit.Bukkit.getPlayer(args[1]);
+            if (target == null) {
+                player.sendMessage("§cИгрок не найден!");
+                return true;
+            }
+
+            int amount;
+            try {
+                amount = Integer.parseInt(args[2]);
+            } catch (NumberFormatException e) {
+                player.sendMessage("§cКоличество должно быть числом!");
+                return true;
+            }
+
+            plugin.getEconomyManager().addPoints(target, amount);
+            player.sendMessage("§a[BedWars] Вы выдали §e" + amount + " §aпоинтов игроку §e" + target.getName() + "§a!");
+            target.sendMessage("§a[BedWars] Администратор выдал вам §e" + amount + " §aпоинтов!");
+            target.playSound(target.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
+            return true;
+        }
+
         if (args[0].equalsIgnoreCase("scan")) {
             int radius = 100; // По умолчанию ищем в радиусе 100 блоков
             if (args.length > 1) {
@@ -74,5 +107,6 @@ public class BedWarsCommand implements CommandExecutor {
             return true;
         }
         return true;
+
     }
 }

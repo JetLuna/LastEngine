@@ -57,11 +57,13 @@ public class DeathManager {
 
             if (team.hasBed()) {
                 Bukkit.broadcastMessage(team.getColor().getChatColor() + player.getName() + " §7был убит " + kColor + killer.getName());
+                plugin.getGameStats().addKill(killer.getUniqueId());
                 plugin.getEconomyManager().addPoints(killer, 1);
                 killer.sendMessage("§b+ 1 поинт §7за убийство!");
             } else {
                 Bukkit.broadcastMessage(team.getColor().getChatColor() + player.getName() + " §7был §c§lОКОНЧАТЕЛЬНО §7убит " + kColor + killer.getName());
                 plugin.getEconomyManager().addPoints(killer, 5);
+                plugin.getGameStats().addKill(killer.getUniqueId()); // ← добавить сюда
                 killer.sendMessage("§b+ 5 поинтов §7за §cфинальное убийство!");
             }
 
@@ -167,8 +169,18 @@ public class DeathManager {
             Bukkit.broadcastMessage("§6§lИГРА ОКОНЧЕНА!");
             if (winner != null) {
                 Bukkit.broadcastMessage("§eПобедила " + winner.getColor().getChatColor() + winner.getColor().getName() + " §eкоманда!");
+
+                // --- СТАТИСТИКА: Топ выживших ---
+                // Перебираем игроков победившей команды и записываем только живых (не спектаторов)
+                for (java.util.UUID uuid : winner.getPlayers()) {
+                    org.bukkit.entity.Player survivor = Bukkit.getPlayer(uuid);
+                    if (survivor != null && survivor.getGameMode() == org.bukkit.GameMode.SURVIVAL) {
+                        plugin.getGameStats().addSurvivor(uuid);
+                    }
+                }
             }
 
+            // setGameState — строго ПОСЛЕ записи выживших!
             plugin.getGameManager().setGameState(new net.jetluna.bedwars.state.EndingState(plugin));
         }
     }

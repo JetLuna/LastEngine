@@ -1,10 +1,15 @@
 package net.jetluna.bedwars.state;
 
 import net.jetluna.bedwars.BedWarsPlugin;
+import net.jetluna.bedwars.endlobby.EndLobbyHologramManager;
+import net.jetluna.bedwars.endlobby.TopNPCManager;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import java.util.List;
+import java.util.UUID;
 
 public class EndingState extends GameState {
 
@@ -14,91 +19,66 @@ public class EndingState extends GameState {
 
     @Override
     public void onEnable() {
-        plugin.getLogger().info("Статус игры: ОКОНЧАНИЕ (Ending)");
+        Bukkit.broadcastMessage("§a[DEBUG] Активация состояния ENDING...");
 
-        // Получаем точку лобби победителей из конфига
-        Location winLobby = plugin.getConfig().getLocation("locations.win-lobby");
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            // Очищаем игрока полностью
-            player.getInventory().clear();
-            player.getInventory().setArmorContents(null);
-            player.setHealth(20.0);
-            player.setFoodLevel(20);
-            player.setFireTicks(0);
-            player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
-
-            // Ставим режим приключений (чтобы не ломали лобби)
-            player.setGameMode(GameMode.ADVENTURE);
-
-            // Телепортируем, если точка установлена
-            if (winLobby != null) {
-                player.teleport(winLobby);
-            } else {
-                player.sendMessage("§cОшибка: Лобби победителей не установлено админом!");
+        try {
+            // 1. Спавним топы
+            if (plugin.getGameStats() != null) {
+                EndLobbyHologramManager.createGameTops(plugin.getGameStats());
+                List<UUID> killsTop = plugin.getGameStats().getTopKills()
+                        .stream()
+                        .map(java.util.Map.Entry::getKey)
+                        .collect(java.util.stream.Collectors.toList());
+                TopNPCManager.spawnAll(plugin.getGameStats());
+                Bukkit.broadcastMessage("§a[DEBUG] Голограммы и NPC созданы!");
             }
 
-            // Выдаем фейерверки или запускаем красивый тайтл
-            player.sendTitle("§6§lИГРА ОКОНЧЕНА", "§7Спасибо за игру!", 10, 80, 10);
+            // 2. Телепортация
+            Location winLobby = plugin.getConfig().getLocation("locations.win-lobby");
+
+            if (winLobby == null) {
+                Bukkit.broadcastMessage("§c[ОШИБКА] win-lobby не найден в конфиге!");
+                // Если лобби нет, берем хотя бы центр мира, чтобы не зависнуть
+                winLobby = new Location(Bukkit.getWorld("world"), 0, 75, 1000);
+            }
+
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.setGameMode(GameMode.ADVENTURE); // Снимаем спектатора
+                player.teleport(winLobby);
+                player.sendTitle("§6§lИГРА ОКОНЧЕНА", "§7Спасибо за игру!", 10, 80, 10);
+            }
+
+        } catch (Throwable e) { // <--- Throwable ловит даже фатальные ошибки уровня ядра!
+            Bukkit.broadcastMessage("§c[КРИТИЧЕСКАЯ ОШИБКА] Код финала упал!");
+            e.printStackTrace();
         }
 
-        // Тут запускаем таймер на 10-15 секунд до перезагрузки арены или кика игроков в главное лобби сервера
         startRestartTimer();
-    }
-
-    @Override
-    public void onDisable() {
-        // Очистка при выключении (например, удаление NPC)
-        plugin.getNpcManager().clearNpcs();
-    }
-
-    @Override
-    public String getName() {
-        return "ENDING";
     }
 
     private void startRestartTimer() {
         new org.bukkit.scheduler.BukkitRunnable() {
-            int time = 10;
+            int time = 15;
             @Override
             public void run() {
                 if (time <= 0) {
-                    Bukkit.broadcastMessage("§cСервер перезагружается...");
-                    Bukkit.shutdown(); // Или отправка игроков на BungeeCord сервер
+                    Bukkit.broadcastMessage("§c[!] Перезагрузка сервера...");
+                    Bukkit.shutdown();
                     cancel();
                     return;
                 }
+                if (time <= 5) Bukkit.broadcastMessage("§eРестарт через " + time + "...");
                 time--;
             }
         }.runTaskTimer(plugin, 0L, 20L);
     }
 
-    // --- ЗАЩИТА ЛОББИ ---
-    @org.bukkit.event.EventHandler
-    public void onDamage(org.bukkit.event.entity.EntityDamageEvent event) {
-        // Отменяем абсолютно любой урон (от игроков, падения, огня)
-        event.setCancelled(true);
-
-        // Бонус: Если игрок случайно выпал за пределы карты в лобби, возвращаем его на спавн
-        if (event.getCause() == org.bukkit.event.entity.EntityDamageEvent.DamageCause.VOID) {
-            if (event.getEntity() instanceof org.bukkit.entity.Player) {
-                org.bukkit.entity.Player player = (org.bukkit.entity.Player) event.getEntity();
-
-                // В зависимости от файла (WaitingState или EndingState) бери нужную точку:
-                // Для WaitingState: "locations.waiting-lobby"
-                // Для EndingState: "locations.win-lobby"
-                org.bukkit.Location safeLoc = plugin.getConfig().getLocation("locations.waiting-lobby");
-
-                if (safeLoc != null) {
-                    player.teleport(safeLoc);
-                }
-            }
-        }
+    @Override
+    public void onDisable() {
+        TopNPCManager.clearAll();
+        plugin.getNpcManager().clearNpcs();
     }
 
-    @org.bukkit.event.EventHandler
-    public void onFoodLevelChange(org.bukkit.event.entity.FoodLevelChangeEvent event) {
-        // Отключаем потерю голода в лобби
-        event.setCancelled(true);
-    }
+    @Override
+    public String getName() { return "ENDING"; }
 }
